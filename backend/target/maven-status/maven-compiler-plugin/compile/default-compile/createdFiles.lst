@@ -1,0 +1,16 @@
+com\eskisehir\eventapi\config\DataSeeder$1.class
+com\eskisehir\eventapi\config\DataSeeder.class
+com\eskisehir\eventapi\service\EventService.class
+com\eskisehir\eventapi\domain\model\Event.class
+com\eskisehir\eventapi\repository\EventRepository.class
+com\eskisehir\eventapi\config\CorsConfig.class
+com\eskisehir\eventapi\dto\RecommendationRequest.class
+com\eskisehir\eventapi\config\CorsConfig$1.class
+com\eskisehir\eventapi\service\RecommendationService.class
+com\eskisehir\eventapi\dto\EventResponse.class
+com\eskisehir\eventapi\dto\RouteRequest.class
+com\eskisehir\eventapi\exception\GlobalExceptionHandler.class
+com\eskisehir\eventapi\EventApiApplication.class
+com\eskisehir\eventapi\domain\model\Category.class
+com\eskisehir\eventapi\controller\EventController.class
+com\eskisehir\eventapi\exception\EventNotFoundException.class

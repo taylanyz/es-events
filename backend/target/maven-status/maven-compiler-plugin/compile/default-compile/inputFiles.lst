@@ -1,0 +1,14 @@
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\config\CorsConfig.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\config\DataSeeder.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\controller\EventController.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\domain\model\Category.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\domain\model\Event.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\dto\EventResponse.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\dto\RecommendationRequest.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\dto\RouteRequest.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\EventApiApplication.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\exception\EventNotFoundException.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\exception\GlobalExceptionHandler.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\repository\EventRepository.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\service\EventService.java
+C:\Users\tako0\.gemini\antigravity\scratch\eskisehir-events\backend\src\main\java\com\eskisehir\eventapi\service\RecommendationService.java
