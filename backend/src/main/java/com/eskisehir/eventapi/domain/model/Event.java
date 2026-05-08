@@ -44,6 +44,55 @@ public class Event {
     @Column(name = "tag")
     private List<String> tags;
 
+    @Column(nullable = false)
+    private String environmentType;  // "kalabalık", "sessiz", "karma"
+
+    @Column(nullable = false)
+    private String difficultyLevel;  // "başlangıç", "orta", "ileri"
+
+    @Column(nullable = false)
+    private String groupSizeType;    // "solo", "çift", "grup", "her biri"
+
+    @Column(nullable = false)
+    private String activityLevel;    // "pasif", "hafif", "orta", "yoğun"
+
+    @Column(nullable = false)
+    private String socialAspect;     // "yalnız", "arkadaş", "yeni insanlar"
+
+    @Column(nullable = false)
+    private Boolean isWheelchairAccessible;
+
+    @Column(nullable = false)
+    private Boolean hasParking;
+
+    @Column(nullable = false)
+    private Boolean hasPublicTransport;
+
+    @Column(nullable = false)
+    private Boolean allowsPhotography;
+
+    @Column(nullable = false)
+    private Boolean hasFoodDrink;
+
+    private String language;  // "TR", "ENG", null
+
+    @Column(nullable = false)
+    private Integer duration;  // minutes
+
+    @Column(nullable = false)
+    private Boolean isIndoor;  // true = kapalı, false = açık hava
+
+    private String ageGroup;  // "Çocuk", "Genç", "Yetişkin", "Yaşlı" (nullable = user doesn't care)
+
+    private String culturalValue;  // "Hiç", "Biraz", "Çok" (nullable)
+
+    @Column(nullable = false)
+    private Boolean weatherDependent;  // true = hava bağımlı, false = bağımsız
+
+    private String bestTimeOfDay;  // "Sabah", "Öğle", "Akşam", "Gece" (nullable)
+
+    private String crowdSize;  // "Çok az", "Az", "Orta", "Çok" (nullable)
+
     public Event() {}
 
     public Long getId() { return id; }
@@ -68,4 +117,40 @@ public class Event {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public List<String> getTags() { return tags; }
     public void setTags(List<String> tags) { this.tags = tags; }
+    public String getEnvironmentType() { return environmentType; }
+    public void setEnvironmentType(String environmentType) { this.environmentType = environmentType; }
+    public String getDifficultyLevel() { return difficultyLevel; }
+    public void setDifficultyLevel(String difficultyLevel) { this.difficultyLevel = difficultyLevel; }
+    public String getGroupSizeType() { return groupSizeType; }
+    public void setGroupSizeType(String groupSizeType) { this.groupSizeType = groupSizeType; }
+    public String getActivityLevel() { return activityLevel; }
+    public void setActivityLevel(String activityLevel) { this.activityLevel = activityLevel; }
+    public String getSocialAspect() { return socialAspect; }
+    public void setSocialAspect(String socialAspect) { this.socialAspect = socialAspect; }
+    public Boolean getIsWheelchairAccessible() { return isWheelchairAccessible; }
+    public void setIsWheelchairAccessible(Boolean wheelchairAccessible) { isWheelchairAccessible = wheelchairAccessible; }
+    public Boolean getHasParking() { return hasParking; }
+    public void setHasParking(Boolean hasParking) { this.hasParking = hasParking; }
+    public Boolean getHasPublicTransport() { return hasPublicTransport; }
+    public void setHasPublicTransport(Boolean hasPublicTransport) { this.hasPublicTransport = hasPublicTransport; }
+    public Boolean getAllowsPhotography() { return allowsPhotography; }
+    public void setAllowsPhotography(Boolean allowsPhotography) { this.allowsPhotography = allowsPhotography; }
+    public Boolean getHasFoodDrink() { return hasFoodDrink; }
+    public void setHasFoodDrink(Boolean hasFoodDrink) { this.hasFoodDrink = hasFoodDrink; }
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
+    public Integer getDuration() { return duration; }
+    public void setDuration(Integer duration) { this.duration = duration; }
+    public Boolean getIsIndoor() { return isIndoor; }
+    public void setIsIndoor(Boolean isIndoor) { this.isIndoor = isIndoor; }
+    public String getAgeGroup() { return ageGroup; }
+    public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
+    public String getCulturalValue() { return culturalValue; }
+    public void setCulturalValue(String culturalValue) { this.culturalValue = culturalValue; }
+    public Boolean getWeatherDependent() { return weatherDependent; }
+    public void setWeatherDependent(Boolean weatherDependent) { this.weatherDependent = weatherDependent; }
+    public String getBestTimeOfDay() { return bestTimeOfDay; }
+    public void setBestTimeOfDay(String bestTimeOfDay) { this.bestTimeOfDay = bestTimeOfDay; }
+    public String getCrowdSize() { return crowdSize; }
+    public void setCrowdSize(String crowdSize) { this.crowdSize = crowdSize; }
 }

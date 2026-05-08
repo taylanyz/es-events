@@ -1,0 +1,6 @@
+ALTER TABLE events ADD COLUMN is_indoor BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE events ADD COLUMN age_group VARCHAR(50);
+ALTER TABLE events ADD COLUMN cultural_value VARCHAR(50);
+ALTER TABLE events ADD COLUMN weather_dependent BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE events ADD COLUMN best_time_of_day VARCHAR(50);
+ALTER TABLE events ADD COLUMN crowd_size VARCHAR(50);

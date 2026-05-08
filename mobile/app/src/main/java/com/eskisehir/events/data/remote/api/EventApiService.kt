@@ -3,6 +3,9 @@ package com.eskisehir.events.data.remote.api
 import com.eskisehir.events.data.remote.dto.EventDto
 import com.eskisehir.events.data.remote.dto.RecommendationRequestDto
 import com.eskisehir.events.data.remote.dto.RouteRequestDto
+import com.eskisehir.events.data.remote.dto.InteractionRequestDto
+import com.eskisehir.events.data.remote.dto.SmartRecommendationRequestDto
+import com.eskisehir.events.data.remote.dto.RecommendationResponseDto
 import retrofit2.http.*
 
 /**
@@ -34,4 +37,12 @@ interface EventApiService {
     /** POST /api/events/route — Get optimized route */
     @POST("api/events/route")
     suspend fun getRoute(@Body request: RouteRequestDto): List<EventDto>
+
+    /** POST /api/interactions — Log user interaction (click) */
+    @POST("api/interactions")
+    suspend fun logInteraction(@Body request: InteractionRequestDto)
+
+    /** POST /api/smart-recommendations — Get AI-powered smart recommendations */
+    @POST("api/smart-recommendations")
+    suspend fun getSmartRecommendations(@Body request: SmartRecommendationRequestDto): List<RecommendationResponseDto>
 }

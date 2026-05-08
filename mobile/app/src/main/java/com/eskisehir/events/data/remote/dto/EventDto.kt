@@ -21,7 +21,19 @@ data class EventDto(
     val date: String,
     val price: Double,
     val imageUrl: String?,
-    val tags: List<String>?
+    val tags: List<String>?,
+    val environmentType: String = "karma",
+    val difficultyLevel: String = "başlangıç",
+    val groupSizeType: String = "her biri",
+    val activityLevel: String = "hafif",
+    val socialAspect: String = "her biri",
+    val isWheelchairAccessible: Boolean = false,
+    val hasParking: Boolean = false,
+    val hasPublicTransport: Boolean = false,
+    val allowsPhotography: Boolean = true,
+    val hasFoodDrink: Boolean = false,
+    val language: String? = null,
+    val duration: Int = 120
 ) {
     /**
      * Maps this DTO to the domain Event model.
@@ -68,4 +80,61 @@ data class RouteRequestDto(
     val eventIds: List<Long>,
     val startLatitude: Double?,
     val startLongitude: Double?
+)
+
+/**
+ * Request body for logging user interactions (clicks).
+ */
+data class InteractionRequestDto(
+    val eventId: Long,
+    val clicked: Boolean = true
+)
+
+/**
+ * Request body for smart recommendations with UI-based criteria selection.
+ */
+data class SmartRecommendationRequestDto(
+    val userId: Long,
+    val limit: Int = 5,
+    // Budget
+    val maxPrice: Double? = null,
+    val minPrice: Double? = null,
+    // Duration
+    val minDuration: Int? = null,
+    val maxDuration: Int? = null,
+    // Environment & Atmosphere
+    val environmentType: String? = null,
+    val crowdSize: String? = null,
+    val isIndoor: Boolean? = null,
+    // Activity & Difficulty
+    val activityLevel: String? = null,
+    val difficultyLevel: String? = null,
+    // Social & Group
+    val socialAspect: String? = null,
+    val groupSize: String? = null,
+    // Culture & Age
+    val ageGroup: String? = null,
+    val culturalValue: String? = null,
+    // Time & Weather
+    val bestTimeOfDay: String? = null,
+    val weatherDependent: Boolean? = null,
+    // Accessibility
+    val requireWheelchair: Boolean? = null,
+    val requireParking: Boolean? = null,
+    val requireTransport: Boolean? = null,
+    val requirePhotography: Boolean? = null,
+    val requireFood: Boolean? = null
+)
+
+/**
+ * Response body for smart recommendations.
+ */
+data class RecommendationResponseDto(
+    val eventId: Long,
+    val eventName: String,
+    val finalScore: Double,
+    val semanticScore: Double,
+    val thompsonScore: Double,
+    val explanation: String,
+    val tags: List<String>
 )

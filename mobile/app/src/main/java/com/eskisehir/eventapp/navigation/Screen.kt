@@ -8,7 +8,11 @@ sealed class Screen(val route: String) {
     object Explore : Screen("explore")
     object Favorites : Screen("favorites")
     object Profile : Screen("profile")
+    object Preferences : Screen("preferences")
     object EventDetail : Screen("event_detail/{eventId}") {
         fun createRoute(eventId: Long) = "event_detail/$eventId"
+    }
+    object Map : Screen("map?eventId={eventId}") {
+        fun createRoute(eventId: Long? = null) = if (eventId != null) "map?eventId=$eventId" else "map"
     }
 }

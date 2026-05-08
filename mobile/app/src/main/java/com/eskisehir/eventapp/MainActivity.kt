@@ -24,6 +24,8 @@ import com.eskisehir.eventapp.ui.screens.detail.EventDetailScreen
 import com.eskisehir.eventapp.ui.screens.explore.ExploreScreen
 import com.eskisehir.eventapp.ui.screens.favorites.FavoritesScreen
 import com.eskisehir.eventapp.ui.screens.home.HomeScreen
+import com.eskisehir.eventapp.ui.screens.map.MapScreen
+import com.eskisehir.eventapp.ui.screens.preferences.PreferencesScreen
 import com.eskisehir.eventapp.ui.screens.profile.ProfileScreen
 
 class MainActivity : ComponentActivity() {
@@ -42,6 +44,7 @@ data class BottomNavItem(val screen: Screen, val icon: ImageVector, val label: S
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, Icons.Default.Home, "Ana Sayfa"),
+    BottomNavItem(Screen.Preferences, Icons.Default.Search, "Tercihler"),
     BottomNavItem(Screen.Explore, Icons.Default.Explore, "Keşfet"),
     BottomNavItem(Screen.Favorites, Icons.Default.Favorite, "Favoriler"),
     BottomNavItem(Screen.Profile, Icons.Default.Person, "Profil")
@@ -94,6 +97,13 @@ fun MainApp() {
                     }
                 )
             }
+            composable(Screen.Preferences.route) {
+                PreferencesScreen(
+                    onEventClick = { eventId ->
+                        navController.navigate(Screen.EventDetail.createRoute(eventId))
+                    }
+                )
+            }
             composable(Screen.Explore.route) {
                 ExploreScreen(
                     onEventClick = { eventId ->
@@ -114,6 +124,25 @@ fun MainApp() {
                 val eventId = backStackEntry.arguments?.getLong("eventId") ?: 0L
                 EventDetailScreen(
                     eventId = eventId,
+                    onBackClick = { navController.popBackStack() },
+                    onMapClick = { clickedEventId ->
+                        navController.navigate(Screen.Map.createRoute(clickedEventId))
+                    }
+                )
+            }
+            composable(
+                route = Screen.Map.route,
+                arguments = listOf(navArgument("eventId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                })
+            ) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getLong("eventId") ?: -1L
+                MapScreen(
+                    eventId = if (eventId == -1L) null else eventId,
+                    onEventClick = { clickedEventId ->
+                        navController.navigate(Screen.EventDetail.createRoute(clickedEventId))
+                    },
                     onBackClick = { navController.popBackStack() }
                 )
             }

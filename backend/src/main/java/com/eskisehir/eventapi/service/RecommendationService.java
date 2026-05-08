@@ -1,5 +1,6 @@
 package com.eskisehir.eventapi.service;
 
+import com.eskisehir.eventapi.algorithm.ThompsonSamplingStrategy;
 import com.eskisehir.eventapi.domain.model.Category;
 import com.eskisehir.eventapi.domain.model.Event;
 import com.eskisehir.eventapi.dto.RecommendationRequest;
@@ -20,9 +21,12 @@ public class RecommendationService {
     private static final Logger log = LoggerFactory.getLogger(RecommendationService.class);
 
     private final EventRepository eventRepository;
+    private final ThompsonSamplingStrategy bandit;
+    private final Map<Long, ThompsonSamplingStrategy.ArmStatistics> armStats = new HashMap<>();
 
-    public RecommendationService(EventRepository eventRepository) {
+    public RecommendationService(EventRepository eventRepository, ThompsonSamplingStrategy bandit) {
         this.eventRepository = eventRepository;
+        this.bandit = bandit;
     }
 
     // Default Eskişehir city center coordinates
@@ -37,28 +41,62 @@ public class RecommendationService {
      */
     public List<Event> getRecommendations(RecommendationRequest request) {
         List<Event> allEvents = eventRepository.findByDateAfter(LocalDateTime.now());
-        
         log.info("Generating recommendations from {} upcoming events", allEvents.size());
 
-        // Score each event based on user preferences
-        Map<Event, Integer> scores = new HashMap<>();
-        
+        Map<Event, Double> scores = new HashMap<>();
+        List<ThompsonSamplingStrategy.ArmStatistics> arms = new ArrayList<>();
+
         for (Event event : allEvents) {
-            int score = calculateScore(event, request);
-            scores.put(event, score);
+            if (!armStats.containsKey(event.getId())) {
+                armStats.put(event.getId(), new ThompsonSamplingStrategy.ArmStatistics());
+            }
+            arms.add(armStats.get(event.getId()));
         }
 
-        // Sort by score descending, then by date ascending as tiebreaker
-        return scores.entrySet().stream()
-                .filter(entry -> entry.getValue() > 0) // Only include events with positive score
-                .sorted((a, b) -> {
-                    int scoreCompare = b.getValue().compareTo(a.getValue());
-                    if (scoreCompare != 0) return scoreCompare;
-                    return a.getKey().getDate().compareTo(b.getKey().getDate());
-                })
+        List<Event> ranked = new ArrayList<>(allEvents);
+        ranked.sort((a, b) -> {
+            int armIdxA = allEvents.indexOf(a);
+            int armIdxB = allEvents.indexOf(b);
+            double scoreA = calculateScore(a, request) * (1.0 + getConvergenceBonus(arms.get(armIdxA)));
+            double scoreB = calculateScore(b, request) * (1.0 + getConvergenceBonus(arms.get(armIdxB)));
+            return Double.compare(scoreB, scoreA);
+        });
+
+        return ranked.stream()
                 .limit(request.getEffectiveLimit())
-                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
+    }
+
+    public void recordInteraction(Long eventId, boolean clicked) {
+        if (armStats.containsKey(eventId)) {
+            bandit.updateArm(armStats.get(eventId), clicked);
+        }
+    }
+
+    public double getThompsonScore(Long eventId, Long userId) {
+        // Initialize arm stats if not exists
+        if (!armStats.containsKey(eventId)) {
+            armStats.put(eventId, new ThompsonSamplingStrategy.ArmStatistics());
+        }
+
+        ThompsonSamplingStrategy.ArmStatistics stats = armStats.get(eventId);
+
+        // If no interactions yet, return neutral score
+        if (stats.impressions == 0) {
+            return 0.5;  // Neutral score for unexplored events
+        }
+
+        // Calculate CTR-based score
+        double ctr = (double) stats.clicks / stats.impressions;
+        // Use convergence score (how confident we are in this estimate)
+        double confidence = bandit.getConvergenceScore(stats);
+
+        // Return weighted score between CTR and confidence
+        return Math.min(ctr + (confidence * 0.1), 1.0);
+    }
+
+    private double getConvergenceBonus(ThompsonSamplingStrategy.ArmStatistics arm) {
+        return Math.min(bandit.getConvergenceScore(arm) * 0.1, 0.2);
     }
 
     /**

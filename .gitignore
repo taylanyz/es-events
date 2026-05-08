@@ -2,3 +2,22 @@
 .idea/
 *.iml
 .DS_Store
+
+# OS / editor files
+Thumbs.db
+
+# Java / Maven
+backend/target/
+
+# Android / Gradle
+mobile/.gradle/
+mobile/**/build/
+mobile/local.properties
+*.apk
+*.ap_
+
+# Logs
+*.log
+
+# Local Codex helper
+.git-global-config
