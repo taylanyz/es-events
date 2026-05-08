@@ -15,4 +15,5 @@ sealed class Screen(val route: String) {
     object Map : Screen("map?eventId={eventId}") {
         fun createRoute(eventId: Long? = null) = if (eventId != null) "map?eventId=$eventId" else "map"
     }
+    object EditProfile : Screen("edit_profile")
 }

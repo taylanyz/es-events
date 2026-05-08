@@ -2,10 +2,16 @@ package com.eskisehir.events.di
 
 import android.content.Context
 import androidx.room.Room
+import com.eskisehir.events.data.local.dao.CommentDao
 import com.eskisehir.events.data.local.dao.FavoriteDao
+import com.eskisehir.events.data.local.dao.FavoritePlaceDao
+import com.eskisehir.events.data.local.dao.UserDao
+import com.eskisehir.events.data.local.dao.UserEventStatusDao
 import com.eskisehir.events.data.local.database.AppDatabase
 import com.eskisehir.events.data.repository.EventRepositoryImpl
+import com.eskisehir.events.data.repository.UserRepositoryImpl
 import com.eskisehir.events.domain.repository.EventRepository
+import com.eskisehir.events.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,7 +34,9 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "eskisehir_events_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
@@ -39,7 +47,37 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideUserDao(database: AppDatabase): UserDao {
+        return database.userDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCommentDao(database: AppDatabase): CommentDao {
+        return database.commentDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserEventStatusDao(database: AppDatabase): UserEventStatusDao {
+        return database.userEventStatusDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavoritePlaceDao(database: AppDatabase): FavoritePlaceDao {
+        return database.favoritePlaceDao()
+    }
+
+    @Provides
+    @Singleton
     fun provideEventRepository(
         impl: EventRepositoryImpl
     ): EventRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(
+        impl: UserRepositoryImpl
+    ): UserRepository = impl
 }

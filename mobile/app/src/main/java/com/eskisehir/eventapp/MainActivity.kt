@@ -27,7 +27,10 @@ import com.eskisehir.eventapp.ui.screens.home.HomeScreen
 import com.eskisehir.eventapp.ui.screens.map.MapScreen
 import com.eskisehir.eventapp.ui.screens.preferences.PreferencesScreen
 import com.eskisehir.eventapp.ui.screens.profile.ProfileScreen
+import com.eskisehir.eventapp.ui.screens.profile.EditProfileScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +59,7 @@ fun MainApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Show bottom bar only on main tabs (not on detail screen)
+    // Show bottom bar only on main tabs (not on detail or edit screens)
     val showBottomBar = bottomNavItems.any { it.screen.route == currentDestination?.route }
 
     Scaffold(
@@ -112,10 +115,22 @@ fun MainApp() {
                 )
             }
             composable(Screen.Favorites.route) {
-                FavoritesScreen()
+                FavoritesScreen(
+                    onEventClick = { eventId ->
+                        navController.navigate(Screen.EventDetail.createRoute(eventId))
+                    }
+                )
             }
             composable(Screen.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
+                    onEventClick = { eventId -> navController.navigate(Screen.EventDetail.createRoute(eventId)) }
+                )
+            }
+            composable(Screen.EditProfile.route) {
+                EditProfileScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable(
                 route = Screen.EventDetail.route,

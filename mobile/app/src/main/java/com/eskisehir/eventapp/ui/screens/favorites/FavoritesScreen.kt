@@ -1,51 +1,71 @@
 package com.eskisehir.eventapp.ui.screens.favorites
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.eskisehir.eventapp.ui.components.EmptyState
+import com.eskisehir.eventapp.ui.components.EventCard
+import com.eskisehir.eventapp.ui.components.SectionHeader
+import com.eskisehir.eventapp.ui.viewmodels.FavoritesViewModel
 
-/**
- * Favorites Screen - Placeholder for saved events.
- * Will be connected to local storage in a later iteration.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen() {
+fun FavoritesScreen(
+    onEventClick: (Long) -> Unit,
+    viewModel: FavoritesViewModel = hiltViewModel()
+) {
+    val favoriteEvents by viewModel.favoriteEvents.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadFavorites()
+    }
+
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Favorilerim", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            CenterAlignedTopAppBar(
+                title = { Text("Favorilerim", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.outline
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Henüz favori etkinlik eklemediniz",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        if (isLoading && favoriteEvents.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (favoriteEvents.isEmpty()) {
+            EmptyState(
+                modifier = Modifier.padding(padding),
+                icon = Icons.Default.FavoriteBorder,
+                message = "Henüz favori etkinlik eklemediniz.\nBeğendiğiniz etkinlikleri favorilere ekleyerek burada görebilirsiniz."
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item {
+                    SectionHeader(title = "Kaydedilen Etkinlikler")
+                }
+                items(favoriteEvents) { event ->
+                    EventCard(
+                        event = event,
+                        onClick = { onEventClick(event.id) }
+                    )
+                }
             }
         }
     }

@@ -1,79 +1,40 @@
 package com.eskisehir.eventapp.ui.screens.explore
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.eskisehir.eventapp.data.model.Category
 import com.eskisehir.eventapp.data.model.Event
 import com.eskisehir.eventapp.data.model.SampleData
 import com.eskisehir.eventapp.ui.components.EventCard
-import com.eskisehir.events.data.remote.api.EventApiService
-import com.eskisehir.events.data.remote.dto.RecommendationRequestDto
-import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.eskisehir.eventapp.ui.components.SectionHeader
 
-/**
- * Explore Screen - Search and filter events by category.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(onEventClick: (Long) -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
-    var recommendedEvents by remember { mutableStateOf<List<Event>>(emptyList()) }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        scope.launch {
-            try {
-                val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
-                val client = OkHttpClient.Builder().addInterceptor(logging).build()
-                val retrofit = Retrofit.Builder()
-                    .baseUrl("http://10.0.2.2:8081/")
-                    .client(client)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-
-                val api = retrofit.create(EventApiService::class.java)
-                val recommendationRequest = RecommendationRequestDto(
-                    preferredCategories = emptyList(),
-                    preferredTags = emptyList(),
-                    maxPrice = null,
-                    limit = 5
-                )
-                val recs = api.getRecommendations(recommendationRequest)
-                recommendedEvents = recs.map { dto ->
-                    Event(
-                        id = dto.id,
-                        name = dto.name,
-                        description = dto.description,
-                        category = Category.valueOf(dto.category),
-                        latitude = dto.latitude,
-                        longitude = dto.longitude,
-                        venue = dto.venue,
-                        date = dto.date,
-                        price = dto.price,
-                        imageUrl = dto.imageUrl ?: "",
-                        tags = dto.tags ?: emptyList()
-                    )
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("ExploreScreen", "Failed to fetch recommendations: ${e.message}")
-                recommendedEvents = SampleData.events.take(3)
-            }
-        }
-    }
+    
+    // We use sample data as recommendations if API fails
+    val recommendedEvents = SampleData.events.shuffled().take(3)
 
     val filteredEvents = SampleData.events.filter { event ->
         val matchesSearch = searchQuery.isBlank() ||
@@ -84,104 +45,155 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Keşfet", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            CenterAlignedTopAppBar(
+                title = { Text("Keşfet", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // Recommended events section
-            if (recommendedEvents.isNotEmpty()) {
-                Text(
-                    "Sizin için Önerilen",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.height(200.dp)
-                ) {
-                    items(recommendedEvents) { event ->
-                        Card(
-                            modifier = Modifier
-                                .width(150.dp)
-                                .fillMaxHeight(),
-                            onClick = { onEventClick(event.id) }
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(12.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(event.name, fontWeight = FontWeight.Bold, maxLines = 2)
-                                Text("${event.price.toInt()} ₺", style = MaterialTheme.typography.bodySmall)
-                            }
+            // Recommendation Section
+            item {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    SectionHeader(
+                        title = "Sizin için Önerilen", 
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(recommendedEvents) { event ->
+                            RecommendationCard(event) { onEventClick(event.id) }
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Search bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Etkinlik ara...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true,
-                shape = MaterialTheme.shapes.large
-            )
+            // Search and Filters
+            item {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Etkinlik ara...") },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.primary) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
 
-            // Category filter chips
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item {
-                    FilterChip(
-                        selected = selectedCategory == null,
-                        onClick = { selectedCategory = null },
-                        label = { Text("Tümü") }
-                    )
-                }
-                items(Category.entries.toList()) { category ->
-                    FilterChip(
-                        selected = selectedCategory == category,
-                        onClick = {
-                            selectedCategory = if (selectedCategory == category) null else category
-                        },
-                        label = { Text(category.displayNameTr) }
-                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item {
+                            FilterChip(
+                                selected = selectedCategory == null,
+                                onClick = { selectedCategory = null },
+                                label = { Text("Tümü") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                        items(Category.entries.toList()) { category ->
+                            FilterChip(
+                                selected = selectedCategory == category,
+                                onClick = {
+                                    selectedCategory = if (selectedCategory == category) null else category
+                                },
+                                label = { Text(category.displayNameTr) },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // List Header
+            item {
+                SectionHeader(
+                    title = if (selectedCategory == null) "Tüm Etkinlikler" else selectedCategory!!.displayNameTr,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
 
-            // Filtered event list
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(filteredEvents) { event ->
+            // Event List
+            items(filteredEvents) { event ->
+                Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
                     EventCard(
                         event = event,
                         onClick = { onEventClick(event.id) }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun RecommendationCard(event: Event, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .width(200.dp)
+            .height(260.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = event.imageUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            
+            // Text Protection Gradient
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                            startY = 300f
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = event.name,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${event.price.toInt()} ₺",
+                    color = Color.White.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }

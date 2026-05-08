@@ -1,224 +1,269 @@
 package com.eskisehir.eventapp.ui.screens.detail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.eskisehir.eventapp.data.model.Event
-import com.eskisehir.events.data.remote.api.EventApiService
-import com.eskisehir.events.data.remote.dto.InteractionRequestDto
-import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.eskisehir.eventapp.data.model.SampleData
+import com.eskisehir.eventapp.ui.components.ModernStatusChip
+import com.eskisehir.eventapp.ui.components.SectionHeader
+import com.eskisehir.eventapp.ui.viewmodels.EventDetailViewModel
+import com.eskisehir.events.data.local.entity.EventStatus
+import java.text.SimpleDateFormat
+import java.util.*
 
-/**
- * Event Detail Screen - Shows full event information.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EventDetailScreen(eventId: Long, onBackClick: () -> Unit, onMapClick: ((Long) -> Unit)? = null) {
-    val event = remember { mutableStateOf<Event?>(null) }
-    val isFavorite = remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val api = remember { mutableStateOf<EventApiService?>(null) }
+fun EventDetailScreen(
+    eventId: Long, 
+    onBackClick: () -> Unit, 
+    onMapClick: ((Long) -> Unit)? = null,
+    viewModel: EventDetailViewModel = hiltViewModel()
+) {
+    val event by viewModel.event.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
+    val status by viewModel.status.collectAsState()
+    val comments by viewModel.getComments(eventId).collectAsState(initial = emptyList())
+    
+    var commentText by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        try {
-            val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
-            val client = OkHttpClient.Builder().addInterceptor(logging).build()
-            val retrofit = Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8081/")
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            api.value = retrofit.create(EventApiService::class.java)
-            val eventDto = api.value!!.getEventById(eventId)
-            event.value = Event(
-                id = eventDto.id,
-                name = eventDto.name,
-                description = eventDto.description,
-                category = com.eskisehir.eventapp.data.model.Category.valueOf(eventDto.category),
-                latitude = eventDto.latitude,
-                longitude = eventDto.longitude,
-                venue = eventDto.venue,
-                date = eventDto.date,
-                price = eventDto.price,
-                imageUrl = eventDto.imageUrl ?: "",
-                tags = eventDto.tags ?: emptyList()
-            )
-        } catch (e: Exception) {
-            android.util.Log.e("EventDetailScreen", "Failed to fetch event: ${e.message}")
-            event.value = SampleData.events.find { it.id == eventId }
-        }
+    LaunchedEffect(eventId) {
+        viewModel.loadEvent(eventId)
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text(event.value?.name ?: "Etkinlik") },
+                title = { },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
+                    Surface(
+                        modifier = Modifier.padding(8.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+                    ) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        }
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = { onMapClick?.invoke(eventId) }
+                    Surface(
+                        modifier = Modifier.padding(4.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
                     ) {
-                        Icon(Icons.Default.LocationOn, contentDescription = "Haritada Göster")
-                    }
-                    IconButton(
-                        onClick = {
-                            isFavorite.value = !isFavorite.value
-                            scope.launch {
-                                try {
-                                    api.value?.logInteraction(InteractionRequestDto(eventId, true))
-                                } catch (e: Exception) {
-                                    android.util.Log.e("EventDetailScreen", "Failed to log favorite: ${e.message}")
-                                }
-                            }
+                        IconButton(onClick = { onMapClick?.invoke(eventId) }) {
+                            Icon(Icons.Default.Map, contentDescription = "Harita")
                         }
+                    }
+                    Surface(
+                        modifier = Modifier.padding(8.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
                     ) {
-                        Icon(
-                            if (isFavorite.value) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorilere Ekle",
-                            tint = if (isFavorite.value) MaterialTheme.colorScheme.error else LocalContentColor.current
-                        )
+                        IconButton(onClick = { viewModel.toggleFavorite(eventId) }) {
+                            Icon(
+                                if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Favori",
+                                tint = if (isFavorite) Color.Red else LocalContentColor.current
+                            )
+                        }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
-        if (event.value == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Etkinlik bulunamadı")
+        if (event == null) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-            return@Scaffold
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Event image
-            AsyncImage(
-                model = event.value?.imageUrl,
-                contentDescription = event.value?.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            Column(modifier = Modifier.padding(16.dp)) {
-                // Category
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text(event.value?.category?.displayNameTr ?: "Kategori") }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Title
-                Text(
-                    text = event.value?.name ?: "",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Info rows
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(event.value?.venue ?: "", style = MaterialTheme.typography.bodyMedium)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(event.value?.date ?: "", style = MaterialTheme.typography.bodyMedium)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.AttachMoney, contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        if (event.value?.price == 0.0) "Ücretsiz" else "${event.value?.price?.toInt()} ₺",
-                        style = MaterialTheme.typography.bodyMedium
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                item {
+                    // Large Premium Image Header
+                    AsyncImage(
+                        model = event?.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(350.dp)
+                            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)),
+                        contentScale = ContentScale.Crop
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        // Category & Badge
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = event?.category?.displayNameTr ?: "",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                // Description
-                Text(
-                    text = "Açıklama",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = event.value?.description ?: "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Tags
-                Text(
-                    text = "Etiketler",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    event.value?.tags?.forEach { tag ->
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(tag) }
+                        Text(
+                            text = event?.name ?: "",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold
                         )
+                        
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        // Info Row Cards
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            InfoCard(Icons.Default.CalendarToday, "Tarih", event?.date ?: "", Modifier.weight(1f))
+                            InfoCard(Icons.Default.Place, "Konum", event?.venue ?: "", Modifier.weight(1f))
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        SectionHeader(title = "Katılım Durumu")
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            ModernStatusChip(
+                                text = "İstiyorum", 
+                                isSelected = status == EventStatus.WANT_TO_GO, 
+                                onClick = { viewModel.setStatus(eventId, EventStatus.WANT_TO_GO) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            ModernStatusChip(
+                                text = "Gideceğim", 
+                                isSelected = status == EventStatus.GOING, 
+                                onClick = { viewModel.setStatus(eventId, EventStatus.GOING) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            ModernStatusChip(
+                                text = "Gittim", 
+                                isSelected = status == EventStatus.ATTENDED, 
+                                onClick = { viewModel.setStatus(eventId, EventStatus.ATTENDED) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        SectionHeader(title = "Hakkında")
+                        Text(
+                            text = event?.description ?: "", 
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 24.sp
+                        )
+                        
+                        Spacer(modifier = Modifier.height(32.dp))
+                        SectionHeader(title = "Yorumlar")
                     }
                 }
+
+                if (comments.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("Henüz yorum yapılmamış.", color = MaterialTheme.colorScheme.outline)
+                        }
+                    }
+                } else {
+                    items(comments) { comment ->
+                        CommentItem(comment)
+                    }
+                }
+
+                item {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        OutlinedTextField(
+                            value = commentText,
+                            onValueChange = { commentText = it },
+                            placeholder = { Text("Düşüncelerini paylaş...") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        Button(
+                            onClick = {
+                                if (commentText.isNotBlank()) {
+                                    viewModel.addComment(eventId, commentText)
+                                    commentText = ""
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.End).padding(top = 12.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Yorum Yap")
+                        }
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoCard(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+fun CommentItem(comment: com.eskisehir.events.data.local.entity.CommentEntity) {
+    val date = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(comment.timestamp))
+    
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            Box(
+                modifier = Modifier.size(44.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(comment.userName.take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+            }
+            Column(modifier = Modifier.padding(start = 12.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(comment.userName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text(date, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(comment.content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
