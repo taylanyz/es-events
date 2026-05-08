@@ -52,4 +52,8 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun removeFavoritePlace(place: FavoritePlaceEntity) {
         placeDao.removeFavoritePlace(place)
     }
+
+    override suspend fun clearUserProfile() {
+        userDao.clearAllProfiles()
+    }
 }

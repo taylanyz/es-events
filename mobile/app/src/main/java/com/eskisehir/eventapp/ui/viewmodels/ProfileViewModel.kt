@@ -95,4 +95,10 @@ class ProfileViewModel @Inject constructor(
             tags = domainEvent.tags
         )
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            userRepository.clearUserProfile()
+        }
+    }
 }

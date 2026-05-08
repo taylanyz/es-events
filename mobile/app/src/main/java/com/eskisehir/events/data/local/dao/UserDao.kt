@@ -14,4 +14,7 @@ interface UserDao {
 
     @Query("UPDATE user_profile SET profileImageUri = :uri WHERE email = :email")
     suspend fun updateProfileImage(email: String, uri: String)
+
+    @Query("DELETE FROM user_profile")
+    suspend fun clearAllProfiles()
 }

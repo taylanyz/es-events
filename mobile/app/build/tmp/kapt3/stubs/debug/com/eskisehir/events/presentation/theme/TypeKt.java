@@ -4,15 +4,13 @@ package com.eskisehir.events.presentation.theme;
 public final class TypeKt {
     
     /**
-     * Custom typography for the app using system default fonts.
-     * Consistent sizing hierarchy for readability.
+     * Modern Typography Hiearchy
      */
     @org.jetbrains.annotations.NotNull()
     private static final androidx.compose.material3.Typography AppTypography = null;
     
     /**
-     * Custom typography for the app using system default fonts.
-     * Consistent sizing hierarchy for readability.
+     * Modern Typography Hiearchy
      */
     @org.jetbrains.annotations.NotNull()
     public static final androidx.compose.material3.Typography getAppTypography() {

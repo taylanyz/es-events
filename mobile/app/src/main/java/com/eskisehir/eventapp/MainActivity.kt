@@ -28,6 +28,8 @@ import com.eskisehir.eventapp.ui.screens.map.MapScreen
 import com.eskisehir.eventapp.ui.screens.preferences.PreferencesScreen
 import com.eskisehir.eventapp.ui.screens.profile.ProfileScreen
 import com.eskisehir.eventapp.ui.screens.profile.EditProfileScreen
+import com.eskisehir.eventapp.ui.screens.login.LoginScreen
+import com.eskisehir.eventapp.ui.screens.login.RegisterScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -59,8 +61,10 @@ fun MainApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Show bottom bar only on main tabs (not on detail or edit screens)
-    val showBottomBar = bottomNavItems.any { it.screen.route == currentDestination?.route }
+    // Show bottom bar only on main tabs (not on detail, edit, login or register screens)
+    val showBottomBar = bottomNavItems.any { it.screen.route == currentDestination?.route } &&
+            currentDestination?.route != Screen.Login.route &&
+            currentDestination?.route != Screen.Register.route
 
     Scaffold(
         bottomBar = {
@@ -90,7 +94,7 @@ fun MainApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Login.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Home.route) {
@@ -124,7 +128,36 @@ fun MainApp() {
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
-                    onEventClick = { eventId -> navController.navigate(Screen.EventDetail.createRoute(eventId)) }
+                    onEventClick = { eventId -> navController.navigate(Screen.EventDetail.createRoute(eventId)) },
+                    onLogoutClick = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
+                    }
+                )
+            }
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Register.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    }
                 )
             }
             composable(Screen.EditProfile.route) {

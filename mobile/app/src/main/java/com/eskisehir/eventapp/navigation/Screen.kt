@@ -9,6 +9,8 @@ sealed class Screen(val route: String) {
     object Favorites : Screen("favorites")
     object Profile : Screen("profile")
     object Preferences : Screen("preferences")
+    object Login : Screen("login")
+    object Register : Screen("register")
     object EventDetail : Screen("event_detail/{eventId}") {
         fun createRoute(eventId: Long) = "event_detail/$eventId"
     }

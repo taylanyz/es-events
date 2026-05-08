@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -34,6 +35,7 @@ import com.eskisehir.eventapp.ui.viewmodels.ProfileViewModel
 fun ProfileScreen(
     onEditProfileClick: () -> Unit,
     onEventClick: (Long) -> Unit,
+    onLogoutClick: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val profile by viewModel.userProfile.collectAsState()
@@ -44,7 +46,30 @@ fun ProfileScreen(
     val favorites by viewModel.favoriteEvents.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val tabs = listOf("Favoriler", "Gideceğim", "İstiyorum", "Gittim")
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Çıkış Yap") },
+            text = { Text("Hesabınızdan çıkış yapmak istediğinize emin misiniz?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    viewModel.logout()
+                    onLogoutClick()
+                }) {
+                    Text("Evet", color = Color.Red, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Hayır")
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -54,6 +79,13 @@ fun ProfileScreen(
                 actions = {
                     IconButton(onClick = onEditProfileClick) {
                         Icon(Icons.Default.Settings, contentDescription = "Ayarlar", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { showLogoutDialog = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout, 
+                            contentDescription = "Çıkış Yap", 
+                            tint = Color.Red
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)

@@ -3,7 +3,7 @@ package com.eskisehir.eventapp.navigation;
 /**
  * Sealed class defining all navigation routes in the app.
  */
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000(\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u000e\n\u0002\b\b\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\b6\u0018\u00002\u00020\u0001:\u0005\u0007\b\t\n\u000bB\u000f\b\u0004\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\u0002\u0010\u0004R\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0005\u0010\u0006\u0082\u0001\u0005\f\r\u000e\u000f\u0010\u00a8\u0006\u0011"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen;", "", "route", "", "(Ljava/lang/String;)V", "getRoute", "()Ljava/lang/String;", "EventDetail", "Explore", "Favorites", "Home", "Profile", "Lcom/eskisehir/eventapp/navigation/Screen$EventDetail;", "Lcom/eskisehir/eventapp/navigation/Screen$Explore;", "Lcom/eskisehir/eventapp/navigation/Screen$Favorites;", "Lcom/eskisehir/eventapp/navigation/Screen$Home;", "Lcom/eskisehir/eventapp/navigation/Screen$Profile;", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000<\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u000e\n\u0002\b\r\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\b6\u0018\u00002\u00020\u0001:\n\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010B\u000f\b\u0004\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\u0002\u0010\u0004R\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0005\u0010\u0006\u0082\u0001\n\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u00a8\u0006\u001b"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen;", "", "route", "", "(Ljava/lang/String;)V", "getRoute", "()Ljava/lang/String;", "EditProfile", "EventDetail", "Explore", "Favorites", "Home", "Login", "Map", "Preferences", "Profile", "Register", "Lcom/eskisehir/eventapp/navigation/Screen$EditProfile;", "Lcom/eskisehir/eventapp/navigation/Screen$EventDetail;", "Lcom/eskisehir/eventapp/navigation/Screen$Explore;", "Lcom/eskisehir/eventapp/navigation/Screen$Favorites;", "Lcom/eskisehir/eventapp/navigation/Screen$Home;", "Lcom/eskisehir/eventapp/navigation/Screen$Login;", "Lcom/eskisehir/eventapp/navigation/Screen$Map;", "Lcom/eskisehir/eventapp/navigation/Screen$Preferences;", "Lcom/eskisehir/eventapp/navigation/Screen$Profile;", "Lcom/eskisehir/eventapp/navigation/Screen$Register;", "app_debug"})
 public abstract class Screen {
     @org.jetbrains.annotations.NotNull()
     private final java.lang.String route = null;
@@ -15,6 +15,15 @@ public abstract class Screen {
     @org.jetbrains.annotations.NotNull()
     public final java.lang.String getRoute() {
         return null;
+    }
+    
+    @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002\u00a8\u0006\u0003"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$EditProfile;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "app_debug"})
+    public static final class EditProfile extends com.eskisehir.eventapp.navigation.Screen {
+        @org.jetbrains.annotations.NotNull()
+        public static final com.eskisehir.eventapp.navigation.Screen.EditProfile INSTANCE = null;
+        
+        private EditProfile() {
+        }
     }
     
     @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\t\n\u0000\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002J\u000e\u0010\u0003\u001a\u00020\u00042\u0006\u0010\u0005\u001a\u00020\u0006\u00a8\u0006\u0007"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$EventDetail;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "createRoute", "", "eventId", "", "app_debug"})
@@ -58,12 +67,54 @@ public abstract class Screen {
         }
     }
     
+    @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002\u00a8\u0006\u0003"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$Login;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "app_debug"})
+    public static final class Login extends com.eskisehir.eventapp.navigation.Screen {
+        @org.jetbrains.annotations.NotNull()
+        public static final com.eskisehir.eventapp.navigation.Screen.Login INSTANCE = null;
+        
+        private Login() {
+        }
+    }
+    
+    @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\u001a\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\t\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002J\u0017\u0010\u0003\u001a\u00020\u00042\n\b\u0002\u0010\u0005\u001a\u0004\u0018\u00010\u0006\u00a2\u0006\u0002\u0010\u0007\u00a8\u0006\b"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$Map;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "createRoute", "", "eventId", "", "(Ljava/lang/Long;)Ljava/lang/String;", "app_debug"})
+    public static final class Map extends com.eskisehir.eventapp.navigation.Screen {
+        @org.jetbrains.annotations.NotNull()
+        public static final com.eskisehir.eventapp.navigation.Screen.Map INSTANCE = null;
+        
+        private Map() {
+        }
+        
+        @org.jetbrains.annotations.NotNull()
+        public final java.lang.String createRoute(@org.jetbrains.annotations.Nullable()
+        java.lang.Long eventId) {
+            return null;
+        }
+    }
+    
+    @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002\u00a8\u0006\u0003"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$Preferences;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "app_debug"})
+    public static final class Preferences extends com.eskisehir.eventapp.navigation.Screen {
+        @org.jetbrains.annotations.NotNull()
+        public static final com.eskisehir.eventapp.navigation.Screen.Preferences INSTANCE = null;
+        
+        private Preferences() {
+        }
+    }
+    
     @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002\u00a8\u0006\u0003"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$Profile;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "app_debug"})
     public static final class Profile extends com.eskisehir.eventapp.navigation.Screen {
         @org.jetbrains.annotations.NotNull()
         public static final com.eskisehir.eventapp.navigation.Screen.Profile INSTANCE = null;
         
         private Profile() {
+        }
+    }
+    
+    @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002\u00a8\u0006\u0003"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$Register;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "app_debug"})
+    public static final class Register extends com.eskisehir.eventapp.navigation.Screen {
+        @org.jetbrains.annotations.NotNull()
+        public static final com.eskisehir.eventapp.navigation.Screen.Register INSTANCE = null;
+        
+        private Register() {
         }
     }
 }

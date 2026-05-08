@@ -7,10 +7,6 @@ public final class ThemeKt {
     @org.jetbrains.annotations.NotNull()
     private static final androidx.compose.material3.ColorScheme DarkColorScheme = null;
     
-    /**
-     * App-wide Material 3 theme with light/dark mode support.
-     * Colors inspired by Eskişehir landmarks.
-     */
     @androidx.compose.runtime.Composable()
     public static final void EskisehirEventsTheme(boolean darkTheme, @org.jetbrains.annotations.NotNull()
     kotlin.jvm.functions.Function0<kotlin.Unit> content) {

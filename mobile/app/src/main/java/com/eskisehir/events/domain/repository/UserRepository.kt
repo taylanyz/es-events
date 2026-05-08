@@ -20,4 +20,6 @@ interface UserRepository {
     fun getFavoritePlaces(): Flow<List<FavoritePlaceEntity>>
     suspend fun addFavoritePlace(name: String, location: String, category: String?)
     suspend fun removeFavoritePlace(place: FavoritePlaceEntity)
+
+    suspend fun clearUserProfile()
 }

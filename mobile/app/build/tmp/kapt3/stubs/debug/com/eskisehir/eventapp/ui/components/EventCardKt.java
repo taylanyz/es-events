@@ -4,7 +4,7 @@ package com.eskisehir.eventapp.ui.components;
 public final class EventCardKt {
     
     /**
-     * Reusable Event Card component used across Home and Explore screens.
+     * Modern & Professional Event Card with Robust Image Loading
      */
     @androidx.compose.runtime.Composable()
     public static final void EventCard(@org.jetbrains.annotations.NotNull()
