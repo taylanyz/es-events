@@ -33,6 +33,7 @@ class EventDetailViewModel @Inject constructor(
 
     fun loadEvent(eventId: Long) {
         viewModelScope.launch {
+            // Load event data
             eventRepository.getEventById(eventId).fold(
                 onSuccess = { domainEvent ->
                     _event.value = Event(
@@ -56,8 +57,19 @@ class EventDetailViewModel @Inject constructor(
                     _event.value = SampleData.events.find { it.id == eventId }
                 }
             )
-            _isFavorite.value = eventRepository.isFavorite(eventId)
-            
+        }
+
+        // Load favorite status and status in parallel (non-blocking)
+        viewModelScope.launch {
+            try {
+                _isFavorite.value = eventRepository.isFavorite(eventId)
+            } catch (e: Exception) {
+                _isFavorite.value = false
+            }
+        }
+
+        // Listen to status changes separately
+        viewModelScope.launch {
             userRepository.getStatusForEvent(eventId).collect {
                 _status.value = it
             }

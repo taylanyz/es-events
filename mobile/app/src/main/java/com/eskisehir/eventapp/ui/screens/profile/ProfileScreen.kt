@@ -50,6 +50,11 @@ fun ProfileScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     val tabs = listOf("Favoriler", "Gideceğim", "İstiyorum", "Gittim")
 
+    // Refresh events when screen is displayed
+    LaunchedEffect(Unit) {
+        viewModel.refreshEvents()
+    }
+
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },

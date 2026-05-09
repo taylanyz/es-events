@@ -15,10 +15,16 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
+        // Read API key from local.properties
+        val googleMapsApiKey = project.findProperty("GOOGLE_MAPS_API_KEY")?.toString() ?: ""
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -76,6 +82,16 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
+
+    // Google Maps Compose
+    implementation("com.google.maps.android:maps-compose:4.3.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    // Google Play Services Location
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    // Coroutines for Play Services
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
 
     // OpenStreetMap (free, no API key needed)
     implementation("org.osmdroid:osmdroid-android:6.1.18")

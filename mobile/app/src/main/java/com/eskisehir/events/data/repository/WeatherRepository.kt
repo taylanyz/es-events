@@ -15,9 +15,20 @@ class WeatherRepository @Inject constructor(
     companion object {
         const val ESKISEHIR_LAT = 39.7767
         const val ESKISEHIR_LNG = 30.5206
+        const val CACHE_DURATION_MINUTES = 15  // Cache weather for 15 minutes
     }
 
+    private var cachedWeather: WeatherInfo? = null
+    private var cacheTimestamp: Long = 0
+
     suspend fun getWeather(): Result<WeatherInfo> {
+        // Return cached weather if it's still valid
+        val now = System.currentTimeMillis()
+        if (cachedWeather != null &&
+            (now - cacheTimestamp) < (CACHE_DURATION_MINUTES * 60 * 1000)) {
+            return Result.success(cachedWeather!!)
+        }
+
         return try {
             val response = weatherApiService.getWeather(
                 latitude = ESKISEHIR_LAT,
@@ -42,6 +53,7 @@ class WeatherRepository @Inject constructor(
                 hourlyDto != null &&
                 !hourlyDto.time.isNullOrEmpty()
             ) {
+                @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
                 val times  = hourlyDto.time!!
                 val temps  = hourlyDto.temperature ?: List(times.size) { 0.0 }
                 val feels  = hourlyDto.apparentTemperature ?: List(times.size) { 0.0 }
@@ -66,7 +78,11 @@ class WeatherRepository @Inject constructor(
                 }
             } else emptyList()
 
-            Result.success(WeatherInfo(current = current, hourly = hourlyList))
+            val weatherInfo = WeatherInfo(current = current, hourly = hourlyList)
+            // Update cache
+            cachedWeather = weatherInfo
+            cacheTimestamp = System.currentTimeMillis()
+            Result.success(weatherInfo)
         } catch (e: Exception) {
             Result.failure(e)
         }

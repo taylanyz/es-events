@@ -8,10 +8,12 @@ import com.eskisehir.events.data.local.entity.EventStatus
 import com.eskisehir.events.domain.repository.EventRepository
 import com.eskisehir.events.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
@@ -24,60 +26,68 @@ class ProfileViewModel @Inject constructor(
     val favoritePlaces = userRepository.getFavoritePlaces()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _attendedEvents = MutableStateFlow<List<Event>>(emptyList())
-    val attendedEvents: StateFlow<List<Event>> = _attendedEvents.asStateFlow()
+    // Refresh trigger for when events change
+    private val _refreshTrigger = MutableSharedFlow<Unit>(replay = 0)
 
-    private val _goingEvents = MutableStateFlow<List<Event>>(emptyList())
-    val goingEvents: StateFlow<List<Event>> = _goingEvents.asStateFlow()
+    val attendedEvents: StateFlow<List<Event>> = _refreshTrigger
+        .onStart { emit(Unit) } // Emit on subscribe
+        .flatMapLatest { loadEventsByStatusFlow(EventStatus.ATTENDED) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _wantToGoEvents = MutableStateFlow<List<Event>>(emptyList())
-    val wantToGoEvents: StateFlow<List<Event>> = _wantToGoEvents.asStateFlow()
+    val goingEvents: StateFlow<List<Event>> = _refreshTrigger
+        .onStart { emit(Unit) }
+        .flatMapLatest { loadEventsByStatusFlow(EventStatus.GOING) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _favoriteEvents = MutableStateFlow<List<Event>>(emptyList())
-    val favoriteEvents: StateFlow<List<Event>> = _favoriteEvents.asStateFlow()
+    val wantToGoEvents: StateFlow<List<Event>> = _refreshTrigger
+        .onStart { emit(Unit) }
+        .flatMapLatest { loadEventsByStatusFlow(EventStatus.WANT_TO_GO) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val favoriteEvents: StateFlow<List<Event>> = _refreshTrigger
+        .onStart { emit(Unit) }
+        .flatMapLatest { loadFavoriteEventsFlow() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
-        loadEventsByStatus()
-        loadFavoriteEvents()
+        // Trigger initial load
+        refreshEvents()
     }
 
-    private fun loadEventsByStatus() {
-        EventStatus.entries.forEach { status ->
-            if (status == EventStatus.NONE) return@forEach
-            
-            val flow = when(status) {
-                EventStatus.ATTENDED -> _attendedEvents
-                EventStatus.GOING -> _goingEvents
-                EventStatus.WANT_TO_GO -> _wantToGoEvents
-                else -> null
+    private fun loadEventsByStatusFlow(status: EventStatus): Flow<List<Event>> = flow {
+        // Get all events in one API call, then filter locally
+        eventRepository.getEvents().fold(
+            onSuccess = { allEvents ->
+                val statusIds = userRepository.getEventIdsWithStatus(status)
+                val filteredEvents = allEvents.filter { it.id in statusIds }
+                    .map { mapDomainToAppEvent(it) }
+                emit(filteredEvents)
+            },
+            onFailure = {
+                // Fallback to sample data
+                val statusIds = userRepository.getEventIdsWithStatus(status)
+                val filtered = SampleData.events.filter { it.id in statusIds }
+                emit(filtered)
             }
-
-            flow?.let { targetFlow ->
-                viewModelScope.launch {
-                    val ids = userRepository.getEventIdsWithStatus(status)
-                    val events = ids.mapNotNull { id ->
-                        eventRepository.getEventById(id).fold(
-                            onSuccess = { mapDomainToAppEvent(it) },
-                            onFailure = { SampleData.events.find { e -> e.id == id } }
-                        )
-                    }
-                    targetFlow.value = events
-                }
-            }
-        }
+        )
     }
 
-    private fun loadFavoriteEvents() {
-        viewModelScope.launch {
-            val ids = eventRepository.getFavoriteIds()
-            val events = ids.mapNotNull { id ->
-                eventRepository.getEventById(id).fold(
-                    onSuccess = { mapDomainToAppEvent(it) },
-                    onFailure = { SampleData.events.find { e -> e.id == id } }
-                )
+    private fun loadFavoriteEventsFlow(): Flow<List<Event>> = flow {
+        // Get all events in one API call, then filter by favorites
+        eventRepository.getEvents().fold(
+            onSuccess = { allEvents ->
+                val favoriteIds = eventRepository.getFavoriteIds()
+                val filteredEvents = allEvents.filter { it.id in favoriteIds }
+                    .map { mapDomainToAppEvent(it) }
+                emit(filteredEvents)
+            },
+            onFailure = {
+                // Fallback to sample data
+                val favoriteIds = eventRepository.getFavoriteIds()
+                val filtered = SampleData.events.filter { it.id in favoriteIds }
+                emit(filtered)
             }
-            _favoriteEvents.value = events
-        }
+        )
     }
 
     private fun mapDomainToAppEvent(domainEvent: com.eskisehir.events.domain.model.Event): Event {
@@ -96,6 +106,12 @@ class ProfileViewModel @Inject constructor(
             tags = domainEvent.tags,
             isFeatured = domainEvent.isFeatured
         )
+    }
+
+    fun refreshEvents() {
+        viewModelScope.launch {
+            _refreshTrigger.emit(Unit)
+        }
     }
 
     fun logout() {

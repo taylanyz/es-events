@@ -388,7 +388,7 @@ fun SelectDropdown(label: String, options: List<String>, selected: String?, onSe
                 )
             }
             if (selected != null) {
-                Divider()
+                HorizontalDivider()
                 DropdownMenuItem(
                     text = { Text("Temizle", color = MaterialTheme.colorScheme.error) },
                     onClick = { onSelected(null); expanded = false }

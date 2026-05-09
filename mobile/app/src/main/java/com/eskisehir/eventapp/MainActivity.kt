@@ -172,10 +172,7 @@ fun MainApp() {
                 val eventId = backStackEntry.arguments?.getLong("eventId") ?: 0L
                 EventDetailScreen(
                     eventId = eventId,
-                    onBackClick = { navController.popBackStack() },
-                    onMapClick = { clickedEventId ->
-                        navController.navigate(Screen.Map.createRoute(clickedEventId))
-                    }
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable(

@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,7 +38,7 @@ fun MapScreen(eventId: Long?, onEventClick: (Long) -> Unit, onBackClick: () -> U
                 title = { Text("Harita", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
                     }
                 },
                 actions = {
@@ -86,7 +86,7 @@ fun MapScreen(eventId: Long?, onEventClick: (Long) -> Unit, onBackClick: () -> U
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { context ->
-                    Configuration.getInstance().load(context, android.preference.PreferenceManager.getDefaultSharedPreferences(context))
+                    Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
                     MapView(context).apply {
                         setTileSource(TileSourceFactory.MAPNIK)
                         controller.setZoom(11.0)

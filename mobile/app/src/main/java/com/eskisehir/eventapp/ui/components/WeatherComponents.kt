@@ -89,7 +89,7 @@ private fun WeatherContent(weather: CurrentWeather, modifier: Modifier = Modifie
                 }
 
                 Spacer(Modifier.height(16.dp))
-                Divider(color = Color.White.copy(alpha = 0.25f))
+                HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
                 Spacer(Modifier.height(14.dp))
 
                 // Detail row

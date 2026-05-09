@@ -3,7 +3,7 @@ package com.eskisehir.eventapp.navigation;
 /**
  * Sealed class defining all navigation routes in the app.
  */
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000<\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u000e\n\u0002\b\r\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\b6\u0018\u00002\u00020\u0001:\n\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010B\u000f\b\u0004\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\u0002\u0010\u0004R\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0005\u0010\u0006\u0082\u0001\n\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u00a8\u0006\u001b"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen;", "", "route", "", "(Ljava/lang/String;)V", "getRoute", "()Ljava/lang/String;", "EditProfile", "EventDetail", "Explore", "Favorites", "Home", "Login", "Map", "Preferences", "Profile", "Register", "Lcom/eskisehir/eventapp/navigation/Screen$EditProfile;", "Lcom/eskisehir/eventapp/navigation/Screen$EventDetail;", "Lcom/eskisehir/eventapp/navigation/Screen$Explore;", "Lcom/eskisehir/eventapp/navigation/Screen$Favorites;", "Lcom/eskisehir/eventapp/navigation/Screen$Home;", "Lcom/eskisehir/eventapp/navigation/Screen$Login;", "Lcom/eskisehir/eventapp/navigation/Screen$Map;", "Lcom/eskisehir/eventapp/navigation/Screen$Preferences;", "Lcom/eskisehir/eventapp/navigation/Screen$Profile;", "Lcom/eskisehir/eventapp/navigation/Screen$Register;", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000@\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u000e\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\b6\u0018\u00002\u00020\u0001:\u000b\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011B\u000f\b\u0004\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\u0002\u0010\u0004R\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0005\u0010\u0006\u0082\u0001\u000b\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u00a8\u0006\u001d"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen;", "", "route", "", "(Ljava/lang/String;)V", "getRoute", "()Ljava/lang/String;", "EditProfile", "EventDetail", "Explore", "Favorites", "Home", "Login", "Map", "Preferences", "Profile", "Register", "Roadmap", "Lcom/eskisehir/eventapp/navigation/Screen$EditProfile;", "Lcom/eskisehir/eventapp/navigation/Screen$EventDetail;", "Lcom/eskisehir/eventapp/navigation/Screen$Explore;", "Lcom/eskisehir/eventapp/navigation/Screen$Favorites;", "Lcom/eskisehir/eventapp/navigation/Screen$Home;", "Lcom/eskisehir/eventapp/navigation/Screen$Login;", "Lcom/eskisehir/eventapp/navigation/Screen$Map;", "Lcom/eskisehir/eventapp/navigation/Screen$Preferences;", "Lcom/eskisehir/eventapp/navigation/Screen$Profile;", "Lcom/eskisehir/eventapp/navigation/Screen$Register;", "Lcom/eskisehir/eventapp/navigation/Screen$Roadmap;", "app_debug"})
 public abstract class Screen {
     @org.jetbrains.annotations.NotNull()
     private final java.lang.String route = null;
@@ -115,6 +115,15 @@ public abstract class Screen {
         public static final com.eskisehir.eventapp.navigation.Screen.Register INSTANCE = null;
         
         private Register() {
+        }
+    }
+    
+    @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u00c6\u0002\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002\u00a8\u0006\u0003"}, d2 = {"Lcom/eskisehir/eventapp/navigation/Screen$Roadmap;", "Lcom/eskisehir/eventapp/navigation/Screen;", "()V", "app_debug"})
+    public static final class Roadmap extends com.eskisehir.eventapp.navigation.Screen {
+        @org.jetbrains.annotations.NotNull()
+        public static final com.eskisehir.eventapp.navigation.Screen.Roadmap INSTANCE = null;
+        
+        private Roadmap() {
         }
     }
 }
