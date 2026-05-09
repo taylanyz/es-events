@@ -1,7 +1,7 @@
 package com.eskisehir.events.util
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsTransit
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,7 +49,7 @@ object LocationUtils {
      */
     fun getTravelModeIcon(mode: String): ImageVector = when (mode) {
         "DRIVE" -> Icons.Default.DirectionsCar
-        "WALK" -> Icons.AutoMirrored.Filled.DirectionsBike
+        "WALK" -> Icons.AutoMirrored.Filled.DirectionsWalk
         "TRANSIT" -> Icons.Default.DirectionsTransit
         else -> Icons.Default.DirectionsCar
     }

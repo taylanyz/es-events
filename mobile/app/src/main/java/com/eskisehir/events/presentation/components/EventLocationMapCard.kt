@@ -3,41 +3,30 @@ package com.eskisehir.events.presentation.components
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.Directions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.eskisehir.events.util.LocationUtils
+import com.eskisehir.events.util.PolylineDecoder
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.RoundCap
+import com.google.maps.android.compose.*
 
-/**
- * Displays an event location on Google Maps with marker and location details
- */
 @Composable
 fun EventLocationMapCard(
     title: String,
@@ -49,156 +38,144 @@ fun EventLocationMapCard(
     selectedTravelMode: String? = null,
     duration: Long? = null,
     distance: Long? = null,
+    encodedPolyline: String? = null,
     userLocation: LatLng? = null
 ) {
     val context = LocalContext.current
-    val eventLocation = LatLng(latitude, longitude)
-    val markerState = rememberMarkerState(position = eventLocation)
+    val eventLocation = remember(latitude, longitude) { LatLng(latitude, longitude) }
+    
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(eventLocation, 15f)
+    }
+
+    LaunchedEffect(userLocation, eventLocation) {
+        try {
+            if (userLocation != null && encodedPolyline != null) {
+                val bounds = LatLngBounds.builder()
+                    .include(userLocation)
+                    .include(eventLocation)
+                    .build()
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 120))
+            } else {
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(eventLocation, 16f))
+            }
+        } catch (e: Exception) {
+            Log.e("GOOGLE_MAPS", "Camera Error: ${e.message}")
+        }
     }
 
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // Map
-            GoogleMap(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                cameraPositionState = cameraPositionState
-            ) {
-                Marker(
-                    state = markerState,
-                    title = title
-                )
-                // Show user location if available
-                if (userLocation != null) {
-                    val userMarkerState = rememberMarkerState(position = userLocation)
-                    Marker(
-                        state = userMarkerState,
-                        title = "Konumunuz"
+        Column {
+            Box(modifier = Modifier.fillMaxWidth().height(240.dp)) {
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    properties = MapProperties(
+                        isMyLocationEnabled = userLocation != null,
+                        mapType = MapType.NORMAL,
+                        isTrafficEnabled = true
+                    ),
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = false,
+                        myLocationButtonEnabled = true,
+                        compassEnabled = true
                     )
+                ) {
+                    Marker(
+                        state = rememberMarkerState(position = eventLocation),
+                        title = title,
+                        snippet = locationName
+                    )
+                    
+                    if (!encodedPolyline.isNullOrEmpty()) {
+                        val points = remember(encodedPolyline) { PolylineDecoder.decode(encodedPolyline) }
+                        Polyline(
+                            points = points,
+                            color = MaterialTheme.colorScheme.primary,
+                            width = 15f,
+                            jointType = com.google.android.gms.maps.model.JointType.ROUND,
+                            startCap = RoundCap(),
+                            endCap = RoundCap()
+                        )
+                    }
                 }
             }
 
-            // Location Details
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Location",
-                                modifier = Modifier.padding(end = 4.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = locationName,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = locationName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold
+                        )
                         Text(
                             text = address,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    // Open in Maps Button
+                    
                     IconButton(
                         onClick = {
-                            openInGoogleMaps(context, latitude, longitude, title)
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Open in Google Maps",
-                            tint = MaterialTheme.colorScheme.primary
+                            val uri = Uri.parse("google.navigation:q=$latitude,$longitude")
+                            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                                setPackage("com.google.android.apps.maps")
+                            }
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude"))
+                                context.startActivity(webIntent)
+                            }
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
                         )
+                    ) {
+                        Icon(Icons.Default.Directions, "Git")
                     }
                 }
 
-                // Route Information
-                if (selectedTravelMode != null && duration != null && distance != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = MaterialTheme.shapes.small
-                            )
-                            .padding(12.dp)
+                if (duration != null && distance != null) {
+                    Surface(
+                        modifier = Modifier.padding(top = 12.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = LocationUtils.getTravelModeIcon(selectedTravelMode),
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 4.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                LocationUtils.getTravelModeIcon(selectedTravelMode ?: "DRIVE"),
+                                null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
                             )
+                            Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "${LocationUtils.getTravelModeLabel(selectedTravelMode)} ile ${LocationUtils.formatDuration(duration)} • ${LocationUtils.formatDistance(distance)}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
+                                text = "${LocationUtils.getTravelModeLabel(selectedTravelMode ?: "DRIVE")}: ${LocationUtils.formatDuration(duration)} • ${LocationUtils.formatDistance(distance)}",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
                 }
             }
         }
-    }
-}
-
-/**
- * Opens the event location in Google Maps app
- */
-fun openInGoogleMaps(context: Context, latitude: Double, longitude: Double, label: String = "") {
-    val uri = if (label.isNotEmpty()) {
-        Uri.parse("geo:$latitude,$longitude?q=$latitude,$longitude($label)")
-    } else {
-        Uri.parse("geo:$latitude,$longitude")
-    }
-    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-        setPackage("com.google.android.apps.maps")
-    }
-    try {
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        // Fallback to web-based maps
-        val webIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("https://maps.google.com/maps?q=$latitude,$longitude")
-        }
-        context.startActivity(webIntent)
     }
 }

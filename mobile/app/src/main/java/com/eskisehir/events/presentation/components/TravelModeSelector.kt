@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsTransit
 import androidx.compose.material3.FilterChip
@@ -29,9 +29,9 @@ fun TravelModeSelector(
     modifier: Modifier = Modifier
 ) {
     val modes = listOf(
-        Triple("DRIVE", Icons.Default.DirectionsCar, "Drive"),
-        Triple("WALK", Icons.AutoMirrored.Filled.DirectionsBike, "Walk"),
-        Triple("TRANSIT", Icons.Default.DirectionsTransit, "Transit")
+        Triple("DRIVE", Icons.Default.DirectionsCar, "Araba"),
+        Triple("WALK", Icons.AutoMirrored.Filled.DirectionsWalk, "Yürüyüş"),
+        Triple("TRANSIT", Icons.Default.DirectionsTransit, "Toplu Taşıma")
     )
 
     Column(
@@ -40,7 +40,7 @@ fun TravelModeSelector(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = "Travel Mode",
+            text = "Ulaşım Modu",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -79,7 +79,7 @@ fun TravelModeSelector(
  */
 fun getTravelModeIcon(mode: String): ImageVector = when (mode) {
     "DRIVE" -> Icons.Default.DirectionsCar
-    "WALK" -> Icons.AutoMirrored.Filled.DirectionsBike
+    "WALK" -> Icons.AutoMirrored.Filled.DirectionsWalk
     "TRANSIT" -> Icons.Default.DirectionsTransit
     else -> Icons.Default.DirectionsCar
 }

@@ -30,6 +30,7 @@ import com.eskisehir.eventapp.ui.screens.profile.ProfileScreen
 import com.eskisehir.eventapp.ui.screens.profile.EditProfileScreen
 import com.eskisehir.eventapp.ui.screens.login.LoginScreen
 import com.eskisehir.eventapp.ui.screens.login.RegisterScreen
+import com.eskisehir.events.presentation.screens.RoadmapScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -49,8 +50,8 @@ data class BottomNavItem(val screen: Screen, val icon: ImageVector, val label: S
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, Icons.Default.Home, "Ana Sayfa"),
-    BottomNavItem(Screen.Preferences, Icons.Default.Search, "Tercihler"),
     BottomNavItem(Screen.Explore, Icons.Default.Explore, "Keşfet"),
+    BottomNavItem(Screen.Roadmap, Icons.Default.Route, "Roadmap"),
     BottomNavItem(Screen.Favorites, Icons.Default.Favorite, "Favoriler"),
     BottomNavItem(Screen.Profile, Icons.Default.Person, "Profil")
 )
@@ -123,6 +124,11 @@ fun MainApp() {
                     onEventClick = { eventId ->
                         navController.navigate(Screen.EventDetail.createRoute(eventId))
                     }
+                )
+            }
+            composable(Screen.Roadmap.route) {
+                RoadmapScreen(
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable(Screen.Profile.route) {
