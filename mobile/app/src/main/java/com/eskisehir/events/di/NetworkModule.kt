@@ -1,5 +1,6 @@
 package com.eskisehir.events.di
 
+import com.eskisehir.eventapp.data.remote.ai.GeminiApiService
 import com.eskisehir.events.data.remote.api.EventApiService
 import com.eskisehir.events.data.remote.maps.RoutesApiService
 import com.eskisehir.events.data.remote.weather.WeatherApiService
@@ -22,12 +23,13 @@ object NetworkModule {
     private const val BASE_URL = "http://10.0.2.2:8081/"
     private const val WEATHER_BASE_URL = "https://api.open-meteo.com/"
     private const val ROUTES_BASE_URL = "https://routes.googleapis.com/"
+    private const val GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/"
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC  // Only log requests/responses, not body
+            level = HttpLoggingInterceptor.Level.BASIC
         }
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
@@ -46,7 +48,7 @@ object NetworkModule {
         }
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(10, TimeUnit.SECONDS)  // Shorter timeout for weather
+            .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .build()
@@ -76,6 +78,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("geminiRetrofit")
+    fun provideGeminiRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(GEMINI_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideEventApiService(@Named("appRetrofit") retrofit: Retrofit): EventApiService {
         return retrofit.create(EventApiService::class.java)
     }
@@ -84,6 +97,12 @@ object NetworkModule {
     @Singleton
     fun provideWeatherApiService(@Named("weatherRetrofit") retrofit: Retrofit): WeatherApiService {
         return retrofit.create(WeatherApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGeminiApiService(@Named("geminiRetrofit") retrofit: Retrofit): GeminiApiService {
+        return retrofit.create(GeminiApiService::class.java)
     }
 
     @Provides

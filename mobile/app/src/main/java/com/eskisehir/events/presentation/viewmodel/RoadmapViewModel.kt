@@ -1,14 +1,17 @@
 package com.eskisehir.events.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eskisehir.events.data.local.entity.RoadmapStopEntity
 import com.eskisehir.events.data.repository.MapsRepository
 import com.eskisehir.events.data.repository.RoadmapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,7 +21,7 @@ data class RoadmapSegmentRoute(
     val durationSeconds: Long = 0,
     val distanceMeters: Long = 0,
     val encodedPolyline: String = "",
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val error: String? = null
 )
 
@@ -27,6 +30,7 @@ data class RoadmapUiState(
     val segmentRoutes: Map<String, RoadmapSegmentRoute> = emptyMap(),
     val totalDurationSeconds: Long = 0,
     val totalDistanceMeters: Long = 0,
+    val selectedTravelMode: String = "DRIVE",
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -40,188 +44,156 @@ class RoadmapViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(RoadmapUiState())
     val uiState: StateFlow<RoadmapUiState> = _uiState.asStateFlow()
 
+    private var calculationJob: Job? = null
+
     init {
-        loadRoadmap()
+        observeStops()
     }
 
-    /**
-     * Load all roadmap stops and calculate routes between consecutive stops
-     */
-    private fun loadRoadmap() {
+    private fun observeStops() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-
-            try {
-                val stops = roadmapRepository.getAllStopsOnce()
+            roadmapRepository.getAllStops().collectLatest { stops ->
+                Log.d("ROADMAP", "Loaded stops count=${stops.size}")
                 _uiState.value = _uiState.value.copy(stops = stops)
+                calculateAllSegmentRoutes(stops, _uiState.value.selectedTravelMode)
+            }
+        }
+    }
 
-                // Calculate routes between consecutive stops
-                if (stops.size >= 2) {
-                    calculateSegmentRoutes(stops)
+    fun setTravelMode(mode: String) {
+        if (_uiState.value.selectedTravelMode != mode) {
+            _uiState.value = _uiState.value.copy(selectedTravelMode = mode)
+            calculateAllSegmentRoutes(_uiState.value.stops, mode)
+        }
+    }
+
+    private fun calculateAllSegmentRoutes(stops: List<RoadmapStopEntity>, travelMode: String) {
+        calculationJob?.cancel()
+        if (stops.size < 2) {
+            _uiState.value = _uiState.value.copy(
+                segmentRoutes = emptyMap(),
+                totalDurationSeconds = 0,
+                totalDistanceMeters = 0
+            )
+            return
+        }
+
+        calculationJob = viewModelScope.launch {
+            val segmentRoutes = mutableMapOf<String, RoadmapSegmentRoute>()
+            var totalDuration = 0L
+            var totalDistance = 0L
+
+            for (i in 0 until stops.size - 1) {
+                val fromStop = stops[i]
+                val toStop = stops[i + 1]
+                val key = "${i}_${i + 1}"
+
+                Log.d("ROADMAP_ROUTE", "Calculating segment from=${fromStop.title} to=${toStop.title} mode=$travelMode")
+                
+                segmentRoutes[key] = RoadmapSegmentRoute(fromIndex = i, toIndex = i + 1, isLoading = true)
+                _uiState.value = _uiState.value.copy(segmentRoutes = segmentRoutes.toMap())
+
+                val result = mapsRepository.computeRoute(
+                    originLat = fromStop.latitude,
+                    originLng = fromStop.longitude,
+                    destinationLat = toStop.latitude,
+                    destinationLng = toStop.longitude,
+                    travelMode = travelMode
+                )
+
+                result.onSuccess { routeData ->
+                    segmentRoutes[key] = RoadmapSegmentRoute(
+                        fromIndex = i,
+                        toIndex = i + 1,
+                        durationSeconds = routeData.durationSeconds,
+                        distanceMeters = routeData.distanceMeters,
+                        encodedPolyline = routeData.encodedPolyline,
+                        isLoading = false
+                    )
+                    totalDuration += routeData.durationSeconds
+                    totalDistance += routeData.distanceMeters
+                }.onFailure { error ->
+                    segmentRoutes[key] = RoadmapSegmentRoute(
+                        fromIndex = i,
+                        toIndex = i + 1,
+                        isLoading = false,
+                        error = error.message ?: "Rota hatası"
+                    )
                 }
 
-                _uiState.value = _uiState.value.copy(isLoading = false)
-            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Failed to load roadmap: ${e.message}"
+                    segmentRoutes = segmentRoutes.toMap(),
+                    totalDurationSeconds = totalDuration,
+                    totalDistanceMeters = totalDistance
                 )
             }
         }
     }
 
-    /**
-     * Calculate routes between all consecutive stops
-     */
-    private suspend fun calculateSegmentRoutes(stops: List<RoadmapStopEntity>) {
-        val segmentRoutes = mutableMapOf<String, RoadmapSegmentRoute>()
-        var totalDuration = 0L
-        var totalDistance = 0L
-
-        for (i in 0 until stops.size - 1) {
-            val fromStop = stops[i]
-            val toStop = stops[i + 1]
-            val key = "${i}_${i + 1}"
-
-            // Initialize as loading
-            segmentRoutes[key] = RoadmapSegmentRoute(
-                fromIndex = i,
-                toIndex = i + 1,
-                isLoading = true
-            )
-
-            // Calculate route
-            val result = mapsRepository.computeRoute(
-                originLat = fromStop.latitude,
-                originLng = fromStop.longitude,
-                destinationLat = toStop.latitude,
-                destinationLng = toStop.longitude,
-                travelMode = "DRIVE"
-            )
-
-            result.onSuccess { routeData ->
-                segmentRoutes[key] = RoadmapSegmentRoute(
-                    fromIndex = i,
-                    toIndex = i + 1,
-                    durationSeconds = routeData.durationSeconds,
-                    distanceMeters = routeData.distanceMeters,
-                    encodedPolyline = routeData.encodedPolyline,
-                    isLoading = false
-                )
-                totalDuration += routeData.durationSeconds
-                totalDistance += routeData.distanceMeters
-            }.onFailure { error ->
-                segmentRoutes[key] = RoadmapSegmentRoute(
-                    fromIndex = i,
-                    toIndex = i + 1,
-                    isLoading = false,
-                    error = error.message ?: "Unknown error"
-                )
-            }
-
-            _uiState.value = _uiState.value.copy(
-                segmentRoutes = segmentRoutes,
-                totalDurationSeconds = totalDuration,
-                totalDistanceMeters = totalDistance
-            )
-        }
-    }
-
-    /**
-     * Add a stop to the roadmap
-     */
-    fun addStop(
-        eventId: Long,
-        title: String,
-        latitude: Double,
-        longitude: Double,
-        locationName: String,
-        address: String
-    ) {
+    fun addStop(eventId: Long, title: String, latitude: Double, longitude: Double, locationName: String, address: String, date: String) {
         viewModelScope.launch {
-            try {
-                roadmapRepository.addStop(
-                    eventId = eventId,
-                    title = title,
-                    latitude = latitude,
-                    longitude = longitude,
-                    locationName = locationName,
-                    address = address
-                )
-                loadRoadmap()
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = "Failed to add stop: ${e.message}"
-                )
+            _uiState.value = _uiState.value.copy(error = null)
+            val result = roadmapRepository.addStop(eventId, title, latitude, longitude, locationName, address, date)
+            result.onFailure { error ->
+                _uiState.value = _uiState.value.copy(error = error.message)
             }
         }
     }
 
-    /**
-     * Remove a stop from the roadmap
-     */
     fun removeStop(eventId: Long) {
         viewModelScope.launch {
             try {
                 roadmapRepository.removeStop(eventId)
-                loadRoadmap()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = "Failed to remove stop: ${e.message}"
-                )
+                _uiState.value = _uiState.value.copy(error = "Durak silinemedi: ${e.message}")
             }
         }
     }
 
-    /**
-     * Reorder stops in the roadmap
-     */
-    fun reorderStops(newOrder: List<RoadmapStopEntity>) {
+    fun moveStopUp(index: Int) {
+        if (index > 0) {
+            val stops = _uiState.value.stops.toMutableList()
+            val stop = stops.removeAt(index)
+            stops.add(index - 1, stop)
+            reorderStops(stops)
+        }
+    }
+
+    fun moveStopDown(index: Int) {
+        if (index < _uiState.value.stops.size - 1) {
+            val stops = _uiState.value.stops.toMutableList()
+            val stop = stops.removeAt(index)
+            stops.add(index + 1, stop)
+            reorderStops(stops)
+        }
+    }
+
+    private fun reorderStops(newOrder: List<RoadmapStopEntity>) {
         viewModelScope.launch {
             try {
                 roadmapRepository.reorderStops(newOrder)
-                loadRoadmap()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = "Failed to reorder stops: ${e.message}"
-                )
+                _uiState.value = _uiState.value.copy(error = "Sıralama değiştirilemedi")
             }
         }
     }
 
-    /**
-     * Clear the entire roadmap
-     */
     fun clearRoadmap() {
         viewModelScope.launch {
             try {
                 roadmapRepository.clearRoadmap()
-                _uiState.value = RoadmapUiState()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = "Failed to clear roadmap: ${e.message}"
-                )
+                _uiState.value = _uiState.value.copy(error = "Rota temizlenemedi")
             }
         }
     }
 
-    /**
-     * Check if a specific event is in the roadmap
-     */
     fun isEventInRoadmap(eventId: Long, callback: (Boolean) -> Unit) {
         viewModelScope.launch {
-            try {
-                val isInRoadmap = roadmapRepository.isEventInRoadmap(eventId)
-                callback(isInRoadmap)
-            } catch (e: Exception) {
-                callback(false)
-            }
+            callback(roadmapRepository.isEventInRoadmap(eventId))
         }
     }
 
-    /**
-     * Clear error message
-     */
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }

@@ -1,41 +1,38 @@
 package com.eskisehir.events.presentation.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eskisehir.events.presentation.components.RoadmapMapCard
 import com.eskisehir.events.presentation.components.RoadmapSegmentCard
 import com.eskisehir.events.presentation.components.RoadmapStopCard
 import com.eskisehir.events.presentation.viewmodel.RoadmapViewModel
+import com.eskisehir.events.presentation.components.TravelModeSelector
 import com.eskisehir.events.util.LocationUtils
+import com.eskisehir.eventapp.util.DateTimeUtils
 
-/**
- * Screen for managing roadmap with multiple stops and routes
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoadmapScreen(
@@ -43,165 +40,215 @@ fun RoadmapScreen(
     viewModel: RoadmapViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    // Extract Roadmap Date
+    val roadmapDate = remember(uiState.stops) {
+        if (uiState.stops.isNotEmpty()) {
+            DateTimeUtils.formatEventDate(uiState.stops.first().date).split(",").first()
+        } else null
+    }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Journey Roadmap") },
+                title = { 
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Rota Planım", fontWeight = FontWeight.Bold)
+                        if (roadmapDate != null) {
+                            Text(
+                                text = roadmapDate,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
                     }
                 },
                 actions = {
                     if (uiState.stops.isNotEmpty()) {
-                        IconButton(
-                            onClick = { viewModel.clearRoadmap() }
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Clear Roadmap")
+                        IconButton(onClick = { viewModel.clearRoadmap() }) {
+                            Icon(Icons.Default.Delete, "Tümünü Temizle", tint = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
         if (uiState.stops.isEmpty()) {
-            // Empty state
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "No Stops Added",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Add events from the detail screen to create a roadmap",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
+            EmptyRoadmapState(padding)
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                verticalArrangement = Arrangement.Top
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                // Map showing all stops
                 item {
+                    // Map Card
                     RoadmapMapCard(
                         stops = uiState.stops,
-                        encodedPolylines = uiState.segmentRoutes.mapValues { (_, route) ->
-                            route.encodedPolyline
-                        },
-                        isLoading = uiState.isLoading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                        encodedPolylines = uiState.segmentRoutes.mapValues { it.value.encodedPolyline },
+                        isLoading = false,
+                        modifier = Modifier.fillMaxWidth().height(260.dp)
                     )
-                }
-
-                // Summary information
-                item {
-                    if (uiState.stops.size >= 2) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                    
+                    if (uiState.stops.size < 2) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Column {
-                                Text(
-                                    text = "Total Duration",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = LocationUtils.formatDuration(uiState.totalDurationSeconds),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "Total Distance",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = LocationUtils.formatDistance(uiState.totalDistanceMeters),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "Total Stops",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = uiState.stops.size.toString(),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Rota oluşturmak için aynı güne ait en az 2 etkinlik ekleyin.", style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
+
+                    Spacer(Modifier.height(8.dp))
+                    
+                    // Travel Mode Selector
+                    TravelModeSelector(
+                        selectedMode = uiState.selectedTravelMode,
+                        onModeSelected = { viewModel.setTravelMode(it) }
+                    )
                 }
 
-                // Stops list
+                if (uiState.stops.size >= 2) {
+                    item {
+                        SummaryCard(
+                            duration = uiState.totalDurationSeconds,
+                            distance = uiState.totalDistanceMeters,
+                            stopCount = uiState.stops.size
+                        )
+                    }
+                }
+
+                item {
+                    Text(
+                        "Duraklar",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
                 itemsIndexed(uiState.stops) { index, stop ->
                     RoadmapStopCard(
                         stop = stop,
                         index = index,
-                        onRemove = { eventId ->
-                            viewModel.removeStop(eventId)
-                        }
+                        isFirst = index == 0,
+                        isLast = index == uiState.stops.size - 1,
+                        onRemove = { viewModel.removeStop(it) },
+                        onMoveUp = { viewModel.moveStopUp(index) },
+                        onMoveDown = { viewModel.moveStopDown(index) }
                     )
-                }
-
-                // Segment routes
-                itemsIndexed(
-                    (0 until maxOf(0, uiState.stops.size - 1)).toList()
-                ) { index, _ ->
-                    val segmentRoute = uiState.segmentRoutes["${index}_${index + 1}"]
-                    if (segmentRoute != null && index + 1 < uiState.stops.size) {
-                        RoadmapSegmentCard(
-                            fromStopName = uiState.stops[index].title,
-                            toStopName = uiState.stops[index + 1].title,
-                            segmentRoute = segmentRoute
-                        )
+                    
+                    if (index < uiState.stops.size - 1) {
+                        val segment = uiState.segmentRoutes["${index}_${index + 1}"]
+                        if (segment != null) {
+                            RoadmapSegmentCard(
+                                fromStopName = uiState.stops[index].title,
+                                toStopName = uiState.stops[index+1].title,
+                                segmentRoute = segment
+                            )
+                        }
                     }
                 }
 
-                // Error message
-                if (uiState.error != null) {
+                if (uiState.stops.size >= 2) {
                     item {
-                        Text(
-                            text = uiState.error ?: "",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
+                        Spacer(Modifier.height(24.dp))
+                        Button(
+                            onClick = { openRoadmapInGoogleMaps(context, uiState.stops) },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) {
+                            Icon(Icons.Default.Map, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Google Haritalar'da Başlat")
+                        }
                     }
-                }
-
-                // Bottom spacing
-                item {
-                    Column(modifier = Modifier.padding(bottom = 80.dp)) {}
                 }
             }
         }
     }
+}
+
+@Composable
+fun EmptyRoadmapState(padding: PaddingValues) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.size(120.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Explore, null, modifier = Modifier.size(60.dp), tint = MaterialTheme.colorScheme.primary)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+        Text("Henüz Durak Eklenmedi", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Etkinlik detay sayfasından etkinlikleri Rota'na ekleyerek kendi gezi planını oluşturabilirsin. Rota yalnızca aynı gün olan etkinliklerle oluşturulur.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun SummaryCard(duration: Long, distance: Long, stopCount: Int) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            SummaryItem("Toplam Süre", LocationUtils.formatDuration(duration))
+            SummaryItem("Mesafe", LocationUtils.formatDistance(distance))
+            SummaryItem("Duraklar", "$stopCount Adet")
+        }
+    }
+}
+
+@Composable
+fun SummaryItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+        Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+    }
+}
+
+private fun openRoadmapInGoogleMaps(context: Context, stops: List<com.eskisehir.events.data.local.entity.RoadmapStopEntity>) {
+    if (stops.isEmpty()) return
+    
+    val origin = stops.first()
+    val destination = stops.last()
+    val waypoints = if (stops.size > 2) {
+        stops.subList(1, stops.size - 1).joinToString("|") { "${it.latitude},${it.longitude}" }
+    } else ""
+
+    val uriString = if (waypoints.isNotEmpty()) {
+        "https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&waypoints=$waypoints&travelmode=driving"
+    } else {
+        "https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&travelmode=driving"
+    }
+    
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
+    context.startActivity(intent)
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,6 +43,7 @@ import com.eskisehir.eventapp.util.DateTimeUtils
 @Composable
 fun ExploreScreen(
     onEventClick: (Long) -> Unit,
+    onAiDiscoverClick: () -> Unit,
     weatherViewModel: WeatherViewModel = hiltViewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -61,7 +63,12 @@ fun ExploreScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Keşfet", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold) },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                actions = {
+                    IconButton(onClick = onAiDiscoverClick) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = "AI Keşif", tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
             )
         }
     ) { padding ->
@@ -69,6 +76,42 @@ fun ExploreScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
+            item {
+                // AI Promo Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .clickable(onClick = onAiDiscoverClick),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(
+                                Icons.Default.AutoAwesome,
+                                null,
+                                modifier = Modifier.padding(12.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Sana Özel Öneriler", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("Yapay zeka ile yeni etkinlikler keşfet", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Icon(Icons.Default.AutoAwesome, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                    }
+                }
+            }
+
             item {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     SectionHeader(title = "Sizin için Önerilen", modifier = Modifier.padding(horizontal = 24.dp))

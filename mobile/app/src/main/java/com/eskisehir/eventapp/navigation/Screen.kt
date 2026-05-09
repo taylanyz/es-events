@@ -19,4 +19,5 @@ sealed class Screen(val route: String) {
     }
     object EditProfile : Screen("edit_profile")
     object Roadmap : Screen("roadmap")
+    object AiDiscover : Screen("ai_discover")
 }

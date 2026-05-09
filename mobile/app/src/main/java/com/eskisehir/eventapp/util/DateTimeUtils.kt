@@ -35,4 +35,20 @@ object DateTimeUtils {
             dateStr
         }
     }
+
+    /**
+     * Extracts only the time from ISO date string.
+     * Output example: "20:00"
+     */
+    fun formatEventTime(dateStr: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.getDefault())
+            val date = inputFormat.parse(dateStr) ?: return dateStr
+            
+            val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            outputFormat.format(date)
+        } catch (e: Exception) {
+            "00:00"
+        }
+    }
 }

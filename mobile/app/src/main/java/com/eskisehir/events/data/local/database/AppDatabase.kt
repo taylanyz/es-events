@@ -29,7 +29,7 @@ import com.eskisehir.events.data.local.entity.UserProfileEntity
         FavoritePlaceEntity::class,
         RoadmapStopEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

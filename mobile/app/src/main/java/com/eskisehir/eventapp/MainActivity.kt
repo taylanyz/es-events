@@ -20,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.eskisehir.eventapp.navigation.Screen
+import com.eskisehir.eventapp.ui.discover.DiscoverScreen
 import com.eskisehir.eventapp.ui.screens.detail.EventDetailScreen
 import com.eskisehir.eventapp.ui.screens.explore.ExploreScreen
 import com.eskisehir.eventapp.ui.screens.favorites.FavoritesScreen
@@ -116,6 +117,9 @@ fun MainApp() {
                 ExploreScreen(
                     onEventClick = { eventId ->
                         navController.navigate(Screen.EventDetail.createRoute(eventId))
+                    },
+                    onAiDiscoverClick = {
+                        navController.navigate(Screen.AiDiscover.route)
                     }
                 )
             }
@@ -129,6 +133,14 @@ fun MainApp() {
             composable(Screen.Roadmap.route) {
                 RoadmapScreen(
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.AiDiscover.route) {
+                DiscoverScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onEventClick = { eventId ->
+                        navController.navigate(Screen.EventDetail.createRoute(eventId))
+                    }
                 )
             }
             composable(Screen.Profile.route) {

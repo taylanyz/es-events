@@ -25,9 +25,11 @@ android {
             localProperties.load(localPropertiesFile.inputStream())
         }
         val googleMapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
+        val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildFeatures {
@@ -53,6 +55,9 @@ dependencies {
     // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
     implementation(composeBom)
+
+    // Google AI SDK (Gemini) - Kesin Çözüm İçin
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     // Core Compose
     implementation("androidx.compose.ui:ui")

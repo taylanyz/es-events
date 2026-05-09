@@ -56,6 +56,7 @@ fun EventDetailScreen(
     longitude: Double,
     locationName: String,
     address: String,
+    eventDate: String = "2026-05-09T20:00", // Default value for test/compatibility
     onBackClick: () -> Unit = {},
     mapsViewModel: MapsViewModel = hiltViewModel(),
     roadmapViewModel: RoadmapViewModel = hiltViewModel()
@@ -67,10 +68,8 @@ fun EventDetailScreen(
     var isInRoadmap by remember { mutableStateOf(false) }
 
     // Check if event is in roadmap
-    LaunchedEffect(eventId) {
-        roadmapViewModel.isEventInRoadmap(eventId) { inRoadmap ->
-            isInRoadmap = inRoadmap
-        }
+    LaunchedEffect(eventId, roadmapUiState.stops) {
+        isInRoadmap = roadmapUiState.stops.any { it.eventId == eventId }
     }
 
     // Permission launcher
@@ -97,7 +96,6 @@ fun EventDetailScreen(
                 onClick = {
                     if (isInRoadmap) {
                         roadmapViewModel.removeStop(eventId)
-                        isInRoadmap = false
                     } else {
                         roadmapViewModel.addStop(
                             eventId = eventId,
@@ -105,9 +103,9 @@ fun EventDetailScreen(
                             latitude = latitude,
                             longitude = longitude,
                             locationName = locationName,
-                            address = address
+                            address = address,
+                            date = eventDate
                         )
-                        isInRoadmap = true
                     }
                 }
             ) {

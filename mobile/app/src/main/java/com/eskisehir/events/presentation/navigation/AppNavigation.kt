@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.eskisehir.events.presentation.screens.EventDetailScreen
 import com.eskisehir.events.presentation.screens.RoadmapScreen
+import java.time.LocalDate
 
 @Composable
 fun AppNavigation() {
@@ -52,6 +53,7 @@ fun AppNavigation() {
                 longitude = 30.5163,
                 locationName = "Sazova Bilim Kültür Parkı",
                 address = "Odunpazarı, Eskişehir",
+                eventDate = LocalDate.now().toString() + "T20:00",
                 onBackClick = {
                     navController.popBackStack()
                 }

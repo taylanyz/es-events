@@ -1,6 +1,7 @@
 package com.eskisehir.eventapp.ui.screens.detail
 
 import android.Manifest
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import com.eskisehir.events.presentation.viewmodel.RouteUiState
 import com.eskisehir.events.presentation.components.TravelModeSelector
 import com.eskisehir.events.presentation.components.RouteInfoCard
 import com.eskisehir.events.util.LocationUtils
+import com.eskisehir.events.presentation.viewmodel.RoadmapViewModel
 import com.google.android.gms.maps.model.LatLng
 import java.text.SimpleDateFormat
 import java.util.*
@@ -56,14 +58,32 @@ fun EventDetailScreen(
     eventId: Long,
     onBackClick: () -> Unit,
     viewModel: EventDetailViewModel = hiltViewModel(),
-    mapsViewModel: MapsViewModel = hiltViewModel()
+    mapsViewModel: MapsViewModel = hiltViewModel(),
+    roadmapViewModel: RoadmapViewModel = hiltViewModel()
 ) {
     val event by viewModel.event.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
     val status by viewModel.status.collectAsState()
     val mapsUiState by mapsViewModel.uiState.collectAsState()
+    val roadmapUiState by roadmapViewModel.uiState.collectAsState()
     val weatherViewModel: com.eskisehir.eventapp.ui.weather.WeatherViewModel = hiltViewModel()
     val weatherUiState by weatherViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    var isInRoadmap by remember { mutableStateOf(false) }
+    
+    // Check if event is in roadmap
+    LaunchedEffect(eventId, roadmapUiState.stops) {
+        isInRoadmap = roadmapUiState.stops.any { it.eventId == eventId }
+    }
+
+    // Show Toast for Roadmap Errors
+    LaunchedEffect(roadmapUiState.error) {
+        roadmapUiState.error?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            roadmapViewModel.clearError()
+        }
+    }
 
     var loadComments by remember { mutableStateOf(false) }
     val comments by if (loadComments) {
@@ -91,7 +111,6 @@ fun EventDetailScreen(
         val userLoc = mapsUiState.userLocation
         val evt = event
         if (evt != null) {
-            // Trigger calculation even if userLoc is null (ViewModel will handle fallback)
             if (mapsUiState.driveRoute is RouteUiState.Idle) {
                 mapsViewModel.calculateAllRoutes(
                     origin = userLoc,
@@ -146,6 +165,33 @@ fun EventDetailScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        floatingActionButton = {
+            if (event != null) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        if (isInRoadmap) {
+                            roadmapViewModel.removeStop(eventId)
+                            Toast.makeText(context, "Etkinlik rotadan çıkarıldı.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val evt = event!!
+                            roadmapViewModel.addStop(
+                                eventId = evt.id,
+                                title = evt.name,
+                                latitude = evt.latitude,
+                                longitude = evt.longitude,
+                                locationName = evt.venue,
+                                address = evt.address,
+                                date = evt.date
+                            )
+                        }
+                    },
+                    icon = { Icon(if (isInRoadmap) Icons.Default.Route else Icons.Default.AddLocationAlt, null) },
+                    text = { Text(if (isInRoadmap) "Rota'dan Çıkar" else "Rota'ya Ekle") },
+                    containerColor = if (isInRoadmap) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = if (isInRoadmap) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
     ) { padding ->
         if (event == null) {
