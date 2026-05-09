@@ -6,8 +6,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-allowBackup="true"
-        android:label="Eskişehir Events"
+        android:name="com.eskisehir.eventapp.EskisehirEventsApp"
+        android:allowBackup="true"
+        android:label="Eskisehir Events"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
         android:networkSecurityConfig="@xml/network_security_config">

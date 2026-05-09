@@ -28,8 +28,12 @@ import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
 import com.eskisehir.eventapp.data.model.Event
+import com.eskisehir.eventapp.util.DateTimeUtils
 import com.eskisehir.events.domain.model.HourlyWeather
 
+/**
+ * Modern & Professional Event Card with Robust Image Loading and Formatted Date
+ */
 @Composable
 fun EventCard(
     event: Event,
@@ -39,6 +43,7 @@ fun EventCard(
 ) {
     val effectiveImageUrl = EventImageUtils.getEffectiveImageUrl(event.imageUrl, event.category)
     val categoryColor = EventImageUtils.getCategoryColor(event.category)
+    val formattedDate = DateTimeUtils.formatEventDateShort(event.date)
 
     Card(
         modifier = modifier
@@ -71,8 +76,8 @@ fun EventCard(
                         else                               -> SubcomposeAsyncImageContent()
                     }
                 }
-
-                // Category tag
+                
+                // Category Tag
                 Surface(
                     modifier = Modifier
                         .padding(14.dp)
@@ -89,13 +94,13 @@ fun EventCard(
                     )
                 }
 
-                // Hava durumu rozeti — sağ üst
+                // Weather Badge if available
                 if (hourlyWeather != null) {
                     Surface(
                         modifier = Modifier
                             .padding(14.dp)
                             .align(Alignment.TopEnd),
-                        color = Color.Black.copy(alpha = 0.45f),
+                        color = Color.Black.copy(alpha = 0.4f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Row(
@@ -113,28 +118,14 @@ fun EventCard(
                         }
                     }
                 }
-
-                // Bottom gradient
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.15f))
-                            )
-                        )
-                )
             }
 
-            // Content Section
             Column(modifier = Modifier.padding(18.dp)) {
                 Text(
                     text = event.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
@@ -145,10 +136,7 @@ fun EventCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 Icons.Default.CalendarToday,
@@ -158,7 +146,7 @@ fun EventCard(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = event.date,
+                                text = formattedDate,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.outline
                             )
@@ -179,30 +167,11 @@ fun EventCard(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-
-                        // Hava durumu satırı — tarih altında
-                        if (hourlyWeather != null) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Text(text = hourlyWeather.icon, fontSize = 13.sp)
-                                Text(
-                                    text = "${hourlyWeather.temperature.toInt()}°C  •  ${hourlyWeather.description}  •  🌧 %${hourlyWeather.precipitationProbability}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.outline,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        }
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // Price badge
+                    // Price Tag
                     Surface(
-                        color = categoryColor.copy(alpha = 0.12f),
+                        color = categoryColor.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
@@ -251,10 +220,7 @@ fun CategoryFallbackBox(categoryColor: Color, categoryName: String) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(
-                        categoryColor.copy(alpha = 0.7f),
-                        categoryColor.copy(alpha = 0.4f)
-                    )
+                    colors = listOf(categoryColor.copy(alpha = 0.7f), categoryColor.copy(alpha = 0.4f))
                 )
             ),
         contentAlignment = Alignment.Center

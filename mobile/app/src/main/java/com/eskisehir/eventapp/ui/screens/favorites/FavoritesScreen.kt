@@ -16,15 +16,19 @@ import com.eskisehir.eventapp.ui.components.EmptyState
 import com.eskisehir.eventapp.ui.components.EventCard
 import com.eskisehir.eventapp.ui.components.SectionHeader
 import com.eskisehir.eventapp.ui.viewmodels.FavoritesViewModel
+import com.eskisehir.eventapp.ui.weather.WeatherUiState
+import com.eskisehir.eventapp.ui.weather.WeatherViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
     onEventClick: (Long) -> Unit,
-    viewModel: FavoritesViewModel = hiltViewModel()
+    viewModel: FavoritesViewModel = hiltViewModel(),
+    weatherViewModel: WeatherViewModel = hiltViewModel()
 ) {
     val favoriteEvents by viewModel.favoriteEvents.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val weatherUiState by weatherViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadFavorites()
@@ -60,10 +64,16 @@ fun FavoritesScreen(
                 item {
                     SectionHeader(title = "Kaydedilen Etkinlikler")
                 }
-                items(favoriteEvents) { event ->
+                items(favoriteEvents) { eventItem ->
+                    val currentState = weatherUiState
+                    val hourlyWeather = if (currentState is WeatherUiState.Success) {
+                        weatherViewModel.getHourlyForEvent(eventItem.date)
+                    } else null
+
                     EventCard(
-                        event = event,
-                        onClick = { onEventClick(event.id) }
+                        event = eventItem,
+                        onClick = { onEventClick(eventItem.id) },
+                        hourlyWeather = hourlyWeather
                     )
                 }
             }

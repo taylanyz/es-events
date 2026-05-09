@@ -28,6 +28,7 @@ import com.eskisehir.eventapp.data.model.Event
 import com.eskisehir.eventapp.ui.components.EmptyState
 import com.eskisehir.eventapp.ui.components.ProfileStatItem
 import com.eskisehir.eventapp.ui.components.SectionHeader
+import com.eskisehir.eventapp.util.DateTimeUtils
 import com.eskisehir.eventapp.ui.viewmodels.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -303,6 +304,12 @@ fun ProfileEventCard(event: Event, onClick: () -> Unit) {
             )
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(event.name, maxLines = 1, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    text = DateTimeUtils.formatEventDateShort(event.date),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Place, null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.primary)

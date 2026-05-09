@@ -1,22 +1,6 @@
 package com.eskisehir.eventapp.data.model
 
 /**
- * Event categories matching the backend Category enum.
- */
-enum class Category(val displayNameTr: String) {
-    CONCERT("Konser"),
-    THEATER("Tiyatro"),
-    EXHIBITION("Sergi"),
-    FESTIVAL("Festival"),
-    WORKSHOP("Atölye"),
-    SPORTS("Spor"),
-    STANDUP("Stand-up"),
-    CINEMA("Sinema"),
-    CONFERENCE("Konferans"),
-    OTHER("Diğer")
-}
-
-/**
  * Event data class matching the backend EventResponse DTO.
  */
 data class Event(
@@ -27,10 +11,12 @@ data class Event(
     val latitude: Double,
     val longitude: Double,
     val venue: String,
+    val address: String = "",
     val date: String,
     val price: Double,
     val imageUrl: String?,
     val tags: List<String>?,
+    val isFeatured: Boolean = false,
     val environmentType: String = "karma",
     val difficultyLevel: String = "başlangıç",
     val groupSizeType: String = "her biri",

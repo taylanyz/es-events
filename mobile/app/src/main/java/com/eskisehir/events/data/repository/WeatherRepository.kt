@@ -124,7 +124,8 @@ class WeatherRepository @Inject constructor(
                 "Mayıs" to 4, "Haziran" to 5, "Temmuz" to 6, "Ağustos" to 7,
                 "Eylül" to 8, "Ekim" to 9, "Kasım" to 10, "Aralık" to 11
             )
-            val regex = Regex("(\\d{1,2})\\s+(\\w+),?\\s+(\\d{1,2}):(\\d{2})")
+            // Updated regex: Month group matches characters until a space or comma
+            val regex = Regex("(\\d{1,2})\\s+([^\\s,]+),?\\s+(\\d{1,2}):(\\d{2})")
             val match = regex.find(dateStr) ?: return null
             val day   = match.groupValues[1].toInt()
             val month = monthMap[match.groupValues[2]] ?: return null
@@ -137,6 +138,7 @@ class WeatherRepository @Inject constructor(
             cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
             cal.set(java.util.Calendar.MINUTE, min)
             cal.set(java.util.Calendar.SECOND, 0)
+            cal.set(java.util.Calendar.MILLISECOND, 0)
             cal.timeInMillis
         } catch (e: Exception) { null }
     }

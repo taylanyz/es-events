@@ -5,14 +5,22 @@ package com.eskisehir.events.domain.model
  * Mirrors the backend Category enum for API compatibility.
  */
 enum class Category(val displayName: String, val emoji: String) {
-    CONCERT("Concert", "🎵"),
-    THEATER("Theater", "🎭"),
-    EXHIBITION("Exhibition", "🎨"),
+    CONCERT("Konser", "🎵"),
+    THEATER("Tiyatro", "🎭"),
+    EXHIBITION("Sergi", "🎨"),
     FESTIVAL("Festival", "🎪"),
-    WORKSHOP("Workshop", "🔧"),
-    SPORTS("Sports", "⚽"),
+    WORKSHOP("Atölye", "🔧"),
+    SPORTS("Spor", "⚽"),
     STANDUP("Stand-up", "😂"),
-    CINEMA("Cinema", "🎬"),
-    CONFERENCE("Conference", "💡"),
-    OTHER("Other", "📌")
+    CINEMA("Sinema", "🎬"),
+    CONFERENCE("Konferans", "💡"),
+    MUSEUM("Müze", "🏛️"),
+    PARK("Park", "🌳"),
+    WALKING_ROUTE("Yürüyüş Rotası", "🚶"),
+    FOOD("Yemek & Kahve", "☕"),
+    UNIVERSITY("Üniversite", "🎓"),
+    CULTURE("Kültür", "🌍"),
+    FAMILY("Aile & Çocuk", "👨‍👩‍👧‍👦"),
+    TECHNOLOGY("Teknoloji", "💻"),
+    OTHER("Diğer", "📌")
 }

@@ -18,10 +18,12 @@ data class EventDto(
     val latitude: Double,
     val longitude: Double,
     val venue: String,
+    val address: String? = null,
     val date: String,
     val price: Double,
     val imageUrl: String?,
     val tags: List<String>?,
+    val isFeatured: Boolean = false,
     val environmentType: String = "karma",
     val difficultyLevel: String = "başlangıç",
     val groupSizeType: String = "her biri",
@@ -51,6 +53,7 @@ data class EventDto(
             latitude = latitude,
             longitude = longitude,
             venue = venue,
+            address = address ?: "",
             date = try {
                 LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
             } catch (e: Exception) {
@@ -58,7 +61,8 @@ data class EventDto(
             },
             price = price,
             imageUrl = imageUrl ?: "",
-            tags = tags ?: emptyList()
+            tags = tags ?: emptyList(),
+            isFeatured = isFeatured
         )
     }
 }

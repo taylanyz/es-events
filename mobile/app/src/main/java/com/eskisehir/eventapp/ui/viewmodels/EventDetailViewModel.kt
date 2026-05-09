@@ -43,10 +43,12 @@ class EventDetailViewModel @Inject constructor(
                         latitude = domainEvent.latitude,
                         longitude = domainEvent.longitude,
                         venue = domainEvent.venue,
+                        address = domainEvent.address,
                         date = domainEvent.date.toString(),
                         price = domainEvent.price,
                         imageUrl = domainEvent.imageUrl,
-                        tags = domainEvent.tags
+                        tags = domainEvent.tags,
+                        isFeatured = domainEvent.isFeatured
                     )
                 },
                 onFailure = {

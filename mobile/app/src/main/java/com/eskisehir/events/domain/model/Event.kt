@@ -15,9 +15,11 @@ data class Event(
     val latitude: Double,
     val longitude: Double,
     val venue: String,
+    val address: String = "",
     val date: LocalDateTime,
     val price: Double,
     val imageUrl: String,
     val tags: List<String>,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isFeatured: Boolean = false
 )

@@ -17,30 +17,42 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import coil.request.ImageRequest
 import com.eskisehir.eventapp.data.model.Category
 import com.eskisehir.eventapp.data.model.Event
 import com.eskisehir.eventapp.data.model.SampleData
+import com.eskisehir.eventapp.ui.components.CategoryFallbackBox
 import com.eskisehir.eventapp.ui.components.EventCard
+import com.eskisehir.eventapp.ui.components.EventImageUtils
 import com.eskisehir.eventapp.ui.components.SectionHeader
+import com.eskisehir.eventapp.ui.components.ShimmerPlaceholder
+import com.eskisehir.eventapp.ui.weather.WeatherUiState
+import com.eskisehir.eventapp.ui.weather.WeatherViewModel
+import com.eskisehir.eventapp.util.DateTimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(onEventClick: (Long) -> Unit) {
+fun ExploreScreen(
+    onEventClick: (Long) -> Unit,
+    weatherViewModel: WeatherViewModel = hiltViewModel()
+) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     
-    // We use sample data as recommendations if API fails
-    val recommendedEvents = SampleData.events.shuffled().take(3)
+    val weatherUiState by weatherViewModel.uiState.collectAsState()
+    val recommendedEvents = remember { SampleData.events.shuffled().take(3) }
 
     val filteredEvents = SampleData.events.filter { event ->
-        val matchesSearch = searchQuery.isBlank() ||
-                event.name.contains(searchQuery, ignoreCase = true)
-        val matchesCategory = selectedCategory == null ||
-                event.category == selectedCategory
+        val matchesSearch = searchQuery.isBlank() || event.name.contains(searchQuery, ignoreCase = true)
+        val matchesCategory = selectedCategory == null || event.category == selectedCategory
         matchesSearch && matchesCategory
     }
 
@@ -54,18 +66,12 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // Recommendation Section
             item {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    SectionHeader(
-                        title = "Sizin için Önerilen", 
-                        modifier = Modifier.padding(horizontal = 24.dp)
-                    )
+                    SectionHeader(title = "Sizin için Önerilen", modifier = Modifier.padding(horizontal = 24.dp))
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -77,7 +83,6 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
                 }
             }
 
-            // Search and Filters
             item {
                 Column(modifier = Modifier.padding(24.dp)) {
                     OutlinedTextField(
@@ -98,9 +103,7 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         item {
                             FilterChip(
                                 selected = selectedCategory == null,
@@ -112,9 +115,7 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
                         items(Category.entries.toList()) { category ->
                             FilterChip(
                                 selected = selectedCategory == category,
-                                onClick = {
-                                    selectedCategory = if (selectedCategory == category) null else category
-                                },
+                                onClick = { selectedCategory = if (selectedCategory == category) null else category },
                                 label = { Text(category.displayNameTr) },
                                 shape = RoundedCornerShape(12.dp)
                             )
@@ -123,7 +124,6 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
                 }
             }
 
-            // List Header
             item {
                 SectionHeader(
                     title = if (selectedCategory == null) "Tüm Etkinlikler" else selectedCategory!!.displayNameTr,
@@ -131,12 +131,17 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
                 )
             }
 
-            // Event List
-            items(filteredEvents) { event ->
+            items(filteredEvents) { eventItem ->
+                val currentState = weatherUiState
+                val hourlyWeather = if (currentState is WeatherUiState.Success) {
+                    weatherViewModel.getHourlyForEvent(eventItem.date)
+                } else null
+
                 Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
                     EventCard(
-                        event = event,
-                        onClick = { onEventClick(event.id) }
+                        event = eventItem, 
+                        onClick = { onEventClick(eventItem.id) },
+                        hourlyWeather = hourlyWeather
                     )
                 }
             }
@@ -146,6 +151,9 @@ fun ExploreScreen(onEventClick: (Long) -> Unit) {
 
 @Composable
 fun RecommendationCard(event: Event, onClick: () -> Unit) {
+    val effectiveImageUrl = EventImageUtils.getEffectiveImageUrl(event.imageUrl, event.category)
+    val categoryColor = EventImageUtils.getCategoryColor(event.category)
+
     Card(
         modifier = Modifier
             .width(200.dp)
@@ -155,21 +163,30 @@ fun RecommendationCard(event: Event, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = event.imageUrl,
-                contentDescription = null,
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(effectiveImageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = event.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
-            )
-            
-            // Text Protection Gradient
+            ) {
+                when (painter.state) {
+                    is AsyncImagePainter.State.Loading -> ShimmerPlaceholder()
+                    is AsyncImagePainter.State.Error   -> CategoryFallbackBox(categoryColor, event.category.displayNameTr)
+                    else                               -> SubcomposeAsyncImageContent()
+                }
+            }
+
+            // Bottom gradient
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                            startY = 300f
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.72f)),
+                            startY = 250f
                         )
                     )
             )
@@ -177,21 +194,26 @@ fun RecommendationCard(event: Event, onClick: () -> Unit) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(16.dp)
+                    .padding(14.dp)
             ) {
                 Text(
                     text = event.name,
                     color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = DateTimeUtils.formatEventDateShort(event.date),
+                    color = Color.White.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.labelSmall
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${event.price.toInt()} ₺",
-                    color = Color.White.copy(alpha = 0.9f),
-                    style = MaterialTheme.typography.bodySmall,
+                    text = if (event.price == 0.0) "Ücretsiz" else "${event.price.toInt()} ₺",
+                    color = Color.White.copy(alpha = 0.85f),
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Medium
                 )
             }
