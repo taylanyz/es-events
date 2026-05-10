@@ -28,8 +28,10 @@ import com.eskisehir.eventapp.data.model.Event
 import com.eskisehir.eventapp.ui.components.EmptyState
 import com.eskisehir.eventapp.ui.components.ProfileStatItem
 import com.eskisehir.eventapp.ui.components.SectionHeader
+import com.eskisehir.eventapp.ui.components.SavedRouteCard
 import com.eskisehir.eventapp.util.DateTimeUtils
 import com.eskisehir.eventapp.ui.viewmodels.ProfileViewModel
+import com.eskisehir.eventapp.ui.viewmodels.SavedRoutesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -37,7 +39,9 @@ fun ProfileScreen(
     onEditProfileClick: () -> Unit,
     onEventClick: (Long) -> Unit,
     onLogoutClick: () -> Unit,
-    viewModel: ProfileViewModel = hiltViewModel()
+    onSavedRouteClick: (Long) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel(),
+    savedRoutesViewModel: SavedRoutesViewModel = hiltViewModel()
 ) {
     val profile by viewModel.userProfile.collectAsState()
     val places by viewModel.favoritePlaces.collectAsState()
@@ -45,6 +49,7 @@ fun ProfileScreen(
     val going by viewModel.goingEvents.collectAsState()
     val wantToGo by viewModel.wantToGoEvents.collectAsState()
     val favorites by viewModel.favoriteEvents.collectAsState()
+    val savedRoutes by savedRoutesViewModel.savedRoutes.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -168,8 +173,34 @@ fun ProfileScreen(
                 }
             }
 
+            // Saved Routes Section
+            item {
+                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    SectionHeader(title = "Kayıtlı Rotalarım")
+                    if (savedRoutes.isEmpty()) {
+                        Text(
+                            text = "Henüz kayıtlı rotanız yok. Roadmap ekranında rota oluşturup kaydedebilirsiniz.",
+                            color = MaterialTheme.colorScheme.outline,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
+            }
+
+            if (savedRoutes.isNotEmpty()) {
+                items(savedRoutes) { route ->
+                    SavedRouteCard(
+                        route = route,
+                        onClick = { onSavedRouteClick(route.id) },
+                        onDeleteClick = { savedRoutesViewModel.deleteRoute(route.id) }
+                    )
+                }
+            }
+
             // Interests Section
             item {
+                Spacer(modifier = Modifier.height(16.dp))
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                     SectionHeader(title = "İlgi Alanlarım")
                     if (profile?.interests.isNullOrEmpty()) {

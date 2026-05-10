@@ -20,4 +20,7 @@ sealed class Screen(val route: String) {
     object EditProfile : Screen("edit_profile")
     object Roadmap : Screen("roadmap")
     object AiDiscover : Screen("ai_discover")
+    object SavedRouteDetail : Screen("saved_route_detail/{routeId}") {
+        fun createRoute(routeId: Long) = "saved_route_detail/$routeId"
+    }
 }

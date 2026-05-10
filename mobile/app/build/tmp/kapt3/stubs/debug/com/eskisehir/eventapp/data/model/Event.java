@@ -4,7 +4,7 @@ package com.eskisehir.eventapp.data.model;
  * Event data class matching the backend EventResponse DTO.
  * Augmented with metadata for AI Recommendation System.
  */
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000:\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0006\n\u0002\b\u0007\n\u0002\u0010 \n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\b\n\u0002\bQ\b\u0086\b\u0018\u00002\u00020\u0001B\u0093\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0005\u0012\u0006\u0010\u0007\u001a\u00020\b\u0012\u0006\u0010\t\u001a\u00020\n\u0012\u0006\u0010\u000b\u001a\u00020\n\u0012\u0006\u0010\f\u001a\u00020\u0005\u0012\b\b\u0002\u0010\r\u001a\u00020\u0005\u0012\u0006\u0010\u000e\u001a\u00020\u0005\u0012\u0006\u0010\u000f\u001a\u00020\n\u0012\b\u0010\u0010\u001a\u0004\u0018\u00010\u0005\u0012\u000e\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u0012\u0012\b\b\u0002\u0010\u0013\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u0015\u001a\u00020\u0016\u0012\b\b\u0002\u0010\u0017\u001a\u00020\u0016\u0012\b\b\u0002\u0010\u0018\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u0019\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u001a\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u001b\u001a\u00020\u0016\u0012\b\b\u0002\u0010\u001c\u001a\u00020\u0005\u0012\b\b\u0002\u0010\u001d\u001a\u00020\u0005\u0012\b\b\u0002\u0010\u001e\u001a\u00020\u0005\u0012\b\b\u0002\u0010\u001f\u001a\u00020\u0005\u0012\b\b\u0002\u0010 \u001a\u00020\u0005\u0012\b\b\u0002\u0010!\u001a\u00020\u0014\u0012\b\b\u0002\u0010\"\u001a\u00020\u0014\u0012\b\b\u0002\u0010#\u001a\u00020\u0014\u0012\n\b\u0002\u0010$\u001a\u0004\u0018\u00010\u0005\u00a2\u0006\u0002\u0010%J\t\u0010F\u001a\u00020\u0003H\u00c6\u0003J\t\u0010G\u001a\u00020\nH\u00c6\u0003J\u000b\u0010H\u001a\u0004\u0018\u00010\u0005H\u00c6\u0003J\u0011\u0010I\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u0012H\u00c6\u0003J\t\u0010J\u001a\u00020\u0014H\u00c6\u0003J\t\u0010K\u001a\u00020\u0016H\u00c6\u0003J\t\u0010L\u001a\u00020\u0016H\u00c6\u0003J\t\u0010M\u001a\u00020\u0014H\u00c6\u0003J\t\u0010N\u001a\u00020\u0014H\u00c6\u0003J\t\u0010O\u001a\u00020\u0014H\u00c6\u0003J\t\u0010P\u001a\u00020\u0016H\u00c6\u0003J\t\u0010Q\u001a\u00020\u0005H\u00c6\u0003J\t\u0010R\u001a\u00020\u0005H\u00c6\u0003J\t\u0010S\u001a\u00020\u0005H\u00c6\u0003J\t\u0010T\u001a\u00020\u0005H\u00c6\u0003J\t\u0010U\u001a\u00020\u0005H\u00c6\u0003J\t\u0010V\u001a\u00020\u0005H\u00c6\u0003J\t\u0010W\u001a\u00020\u0014H\u00c6\u0003J\t\u0010X\u001a\u00020\u0014H\u00c6\u0003J\t\u0010Y\u001a\u00020\u0014H\u00c6\u0003J\u000b\u0010Z\u001a\u0004\u0018\u00010\u0005H\u00c6\u0003J\t\u0010[\u001a\u00020\u0005H\u00c6\u0003J\t\u0010\\\u001a\u00020\bH\u00c6\u0003J\t\u0010]\u001a\u00020\nH\u00c6\u0003J\t\u0010^\u001a\u00020\nH\u00c6\u0003J\t\u0010_\u001a\u00020\u0005H\u00c6\u0003J\t\u0010`\u001a\u00020\u0005H\u00c6\u0003J\t\u0010a\u001a\u00020\u0005H\u00c6\u0003J\u00ad\u0002\u0010b\u001a\u00020\u00002\b\b\u0002\u0010\u0002\u001a\u00020\u00032\b\b\u0002\u0010\u0004\u001a\u00020\u00052\b\b\u0002\u0010\u0006\u001a\u00020\u00052\b\b\u0002\u0010\u0007\u001a\u00020\b2\b\b\u0002\u0010\t\u001a\u00020\n2\b\b\u0002\u0010\u000b\u001a\u00020\n2\b\b\u0002\u0010\f\u001a\u00020\u00052\b\b\u0002\u0010\r\u001a\u00020\u00052\b\b\u0002\u0010\u000e\u001a\u00020\u00052\b\b\u0002\u0010\u000f\u001a\u00020\n2\n\b\u0002\u0010\u0010\u001a\u0004\u0018\u00010\u00052\u0010\b\u0002\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u00122\b\b\u0002\u0010\u0013\u001a\u00020\u00142\b\b\u0002\u0010\u0015\u001a\u00020\u00162\b\b\u0002\u0010\u0017\u001a\u00020\u00162\b\b\u0002\u0010\u0018\u001a\u00020\u00142\b\b\u0002\u0010\u0019\u001a\u00020\u00142\b\b\u0002\u0010\u001a\u001a\u00020\u00142\b\b\u0002\u0010\u001b\u001a\u00020\u00162\b\b\u0002\u0010\u001c\u001a\u00020\u00052\b\b\u0002\u0010\u001d\u001a\u00020\u00052\b\b\u0002\u0010\u001e\u001a\u00020\u00052\b\b\u0002\u0010\u001f\u001a\u00020\u00052\b\b\u0002\u0010 \u001a\u00020\u00052\b\b\u0002\u0010!\u001a\u00020\u00142\b\b\u0002\u0010\"\u001a\u00020\u00142\b\b\u0002\u0010#\u001a\u00020\u00142\n\b\u0002\u0010$\u001a\u0004\u0018\u00010\u0005H\u00c6\u0001J\u0013\u0010c\u001a\u00020\u00142\b\u0010d\u001a\u0004\u0018\u00010\u0001H\u00d6\u0003J\t\u0010e\u001a\u00020\u0016H\u00d6\u0001J\t\u0010f\u001a\u00020\u0005H\u00d6\u0001R\u0011\u0010\u001f\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b&\u0010\'R\u0011\u0010\r\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b(\u0010\'R\u0011\u0010\"\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b)\u0010*R\u0011\u0010\u0007\u001a\u00020\b\u00a2\u0006\b\n\u0000\u001a\u0004\b+\u0010,R\u0011\u0010\u0017\u001a\u00020\u0016\u00a2\u0006\b\n\u0000\u001a\u0004\b-\u0010.R\u0011\u0010\u000e\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b/\u0010\'R\u0011\u0010\u0006\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b0\u0010\'R\u0011\u0010\u001d\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b1\u0010\'R\u0011\u0010\u001b\u001a\u00020\u0016\u00a2\u0006\b\n\u0000\u001a\u0004\b2\u0010.R\u0011\u0010\u001c\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b3\u0010\'R\u0011\u0010\u001e\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b4\u0010\'R\u0011\u0010#\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b5\u0010*R\u0011\u0010\u0019\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b6\u0010*R\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\b\n\u0000\u001a\u0004\b7\u00108R\u0013\u0010\u0010\u001a\u0004\u0018\u00010\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b9\u0010\'R\u0011\u0010\u0013\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0013\u0010*R\u0011\u0010\u0018\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0018\u0010*R\u0011\u0010!\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b!\u0010*R\u0013\u0010$\u001a\u0004\u0018\u00010\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b:\u0010\'R\u0011\u0010\t\u001a\u00020\n\u00a2\u0006\b\n\u0000\u001a\u0004\b;\u0010<R\u0011\u0010\u000b\u001a\u00020\n\u00a2\u0006\b\n\u0000\u001a\u0004\b=\u0010<R\u0011\u0010\u0004\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b>\u0010\'R\u0011\u0010\u000f\u001a\u00020\n\u00a2\u0006\b\n\u0000\u001a\u0004\b?\u0010<R\u0011\u0010\u0015\u001a\u00020\u0016\u00a2\u0006\b\n\u0000\u001a\u0004\b@\u0010.R\u0011\u0010\u001a\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\bA\u0010*R\u0011\u0010 \u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bB\u0010\'R\u0019\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u0012\u00a2\u0006\b\n\u0000\u001a\u0004\bC\u0010DR\u0011\u0010\f\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bE\u0010\'\u00a8\u0006g"}, d2 = {"Lcom/eskisehir/eventapp/data/model/Event;", "", "id", "", "name", "", "description", "category", "Lcom/eskisehir/eventapp/data/model/Category;", "latitude", "", "longitude", "venue", "address", "date", "price", "imageUrl", "tags", "", "isFeatured", "", "priceLevel", "", "crowdLevel", "isIndoor", "hasParking", "publicTransportFriendly", "durationMinutes", "environmentType", "difficultyLevel", "groupSizeType", "activityLevel", "socialAspect", "isWheelchairAccessible", "allowsPhotography", "hasFoodDrink", "language", "(JLjava/lang/String;Ljava/lang/String;Lcom/eskisehir/eventapp/data/model/Category;DDLjava/lang/String;Ljava/lang/String;Ljava/lang/String;DLjava/lang/String;Ljava/util/List;ZIIZZZILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZLjava/lang/String;)V", "getActivityLevel", "()Ljava/lang/String;", "getAddress", "getAllowsPhotography", "()Z", "getCategory", "()Lcom/eskisehir/eventapp/data/model/Category;", "getCrowdLevel", "()I", "getDate", "getDescription", "getDifficultyLevel", "getDurationMinutes", "getEnvironmentType", "getGroupSizeType", "getHasFoodDrink", "getHasParking", "getId", "()J", "getImageUrl", "getLanguage", "getLatitude", "()D", "getLongitude", "getName", "getPrice", "getPriceLevel", "getPublicTransportFriendly", "getSocialAspect", "getTags", "()Ljava/util/List;", "getVenue", "component1", "component10", "component11", "component12", "component13", "component14", "component15", "component16", "component17", "component18", "component19", "component2", "component20", "component21", "component22", "component23", "component24", "component25", "component26", "component27", "component28", "component3", "component4", "component5", "component6", "component7", "component8", "component9", "copy", "equals", "other", "hashCode", "toString", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000:\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0006\n\u0002\b\u0007\n\u0002\u0010 \n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\b\n\u0002\bZ\b\u0086\b\u0018\u00002\u00020\u0001B\u00b7\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0005\u0012\u0006\u0010\u0007\u001a\u00020\b\u0012\u0006\u0010\t\u001a\u00020\n\u0012\u0006\u0010\u000b\u001a\u00020\n\u0012\u0006\u0010\f\u001a\u00020\u0005\u0012\b\b\u0002\u0010\r\u001a\u00020\u0005\u0012\u0006\u0010\u000e\u001a\u00020\u0005\u0012\u0006\u0010\u000f\u001a\u00020\n\u0012\b\u0010\u0010\u001a\u0004\u0018\u00010\u0005\u0012\u000e\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u0012\u0012\b\b\u0002\u0010\u0013\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u0015\u001a\u00020\u0016\u0012\b\b\u0002\u0010\u0017\u001a\u00020\u0016\u0012\b\b\u0002\u0010\u0018\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u0019\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u001a\u001a\u00020\u0014\u0012\b\b\u0002\u0010\u001b\u001a\u00020\u0016\u0012\b\b\u0002\u0010\u001c\u001a\u00020\u0005\u0012\b\b\u0002\u0010\u001d\u001a\u00020\u0005\u0012\u000e\b\u0002\u0010\u001e\u001a\b\u0012\u0004\u0012\u00020\u00050\u0012\u0012\b\b\u0002\u0010\u001f\u001a\u00020\u0005\u0012\b\b\u0002\u0010 \u001a\u00020\u0005\u0012\b\b\u0002\u0010!\u001a\u00020\u0005\u0012\b\b\u0002\u0010\"\u001a\u00020\u0005\u0012\b\b\u0002\u0010#\u001a\u00020\u0005\u0012\b\b\u0002\u0010$\u001a\u00020\u0014\u0012\b\b\u0002\u0010%\u001a\u00020\u0014\u0012\b\b\u0002\u0010&\u001a\u00020\u0014\u0012\n\b\u0002\u0010\'\u001a\u0004\u0018\u00010\u0005\u00a2\u0006\u0002\u0010(J\t\u0010L\u001a\u00020\u0003H\u00c6\u0003J\t\u0010M\u001a\u00020\nH\u00c6\u0003J\u000b\u0010N\u001a\u0004\u0018\u00010\u0005H\u00c6\u0003J\u0011\u0010O\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u0012H\u00c6\u0003J\t\u0010P\u001a\u00020\u0014H\u00c6\u0003J\t\u0010Q\u001a\u00020\u0016H\u00c6\u0003J\t\u0010R\u001a\u00020\u0016H\u00c6\u0003J\t\u0010S\u001a\u00020\u0014H\u00c6\u0003J\t\u0010T\u001a\u00020\u0014H\u00c6\u0003J\t\u0010U\u001a\u00020\u0014H\u00c6\u0003J\t\u0010V\u001a\u00020\u0016H\u00c6\u0003J\t\u0010W\u001a\u00020\u0005H\u00c6\u0003J\t\u0010X\u001a\u00020\u0005H\u00c6\u0003J\t\u0010Y\u001a\u00020\u0005H\u00c6\u0003J\u000f\u0010Z\u001a\b\u0012\u0004\u0012\u00020\u00050\u0012H\u00c6\u0003J\t\u0010[\u001a\u00020\u0005H\u00c6\u0003J\t\u0010\\\u001a\u00020\u0005H\u00c6\u0003J\t\u0010]\u001a\u00020\u0005H\u00c6\u0003J\t\u0010^\u001a\u00020\u0005H\u00c6\u0003J\t\u0010_\u001a\u00020\u0005H\u00c6\u0003J\t\u0010`\u001a\u00020\u0014H\u00c6\u0003J\t\u0010a\u001a\u00020\u0014H\u00c6\u0003J\t\u0010b\u001a\u00020\u0005H\u00c6\u0003J\t\u0010c\u001a\u00020\u0014H\u00c6\u0003J\u000b\u0010d\u001a\u0004\u0018\u00010\u0005H\u00c6\u0003J\t\u0010e\u001a\u00020\bH\u00c6\u0003J\t\u0010f\u001a\u00020\nH\u00c6\u0003J\t\u0010g\u001a\u00020\nH\u00c6\u0003J\t\u0010h\u001a\u00020\u0005H\u00c6\u0003J\t\u0010i\u001a\u00020\u0005H\u00c6\u0003J\t\u0010j\u001a\u00020\u0005H\u00c6\u0003J\u00d1\u0002\u0010k\u001a\u00020\u00002\b\b\u0002\u0010\u0002\u001a\u00020\u00032\b\b\u0002\u0010\u0004\u001a\u00020\u00052\b\b\u0002\u0010\u0006\u001a\u00020\u00052\b\b\u0002\u0010\u0007\u001a\u00020\b2\b\b\u0002\u0010\t\u001a\u00020\n2\b\b\u0002\u0010\u000b\u001a\u00020\n2\b\b\u0002\u0010\f\u001a\u00020\u00052\b\b\u0002\u0010\r\u001a\u00020\u00052\b\b\u0002\u0010\u000e\u001a\u00020\u00052\b\b\u0002\u0010\u000f\u001a\u00020\n2\n\b\u0002\u0010\u0010\u001a\u0004\u0018\u00010\u00052\u0010\b\u0002\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u00122\b\b\u0002\u0010\u0013\u001a\u00020\u00142\b\b\u0002\u0010\u0015\u001a\u00020\u00162\b\b\u0002\u0010\u0017\u001a\u00020\u00162\b\b\u0002\u0010\u0018\u001a\u00020\u00142\b\b\u0002\u0010\u0019\u001a\u00020\u00142\b\b\u0002\u0010\u001a\u001a\u00020\u00142\b\b\u0002\u0010\u001b\u001a\u00020\u00162\b\b\u0002\u0010\u001c\u001a\u00020\u00052\b\b\u0002\u0010\u001d\u001a\u00020\u00052\u000e\b\u0002\u0010\u001e\u001a\b\u0012\u0004\u0012\u00020\u00050\u00122\b\b\u0002\u0010\u001f\u001a\u00020\u00052\b\b\u0002\u0010 \u001a\u00020\u00052\b\b\u0002\u0010!\u001a\u00020\u00052\b\b\u0002\u0010\"\u001a\u00020\u00052\b\b\u0002\u0010#\u001a\u00020\u00052\b\b\u0002\u0010$\u001a\u00020\u00142\b\b\u0002\u0010%\u001a\u00020\u00142\b\b\u0002\u0010&\u001a\u00020\u00142\n\b\u0002\u0010\'\u001a\u0004\u0018\u00010\u0005H\u00c6\u0001J\u0013\u0010l\u001a\u00020\u00142\b\u0010m\u001a\u0004\u0018\u00010\u0001H\u00d6\u0003J\t\u0010n\u001a\u00020\u0016H\u00d6\u0001J\t\u0010o\u001a\u00020\u0005H\u00d6\u0001R\u0011\u0010\"\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b)\u0010*R\u0011\u0010\r\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b+\u0010*R\u0011\u0010%\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b,\u0010-R\u0011\u0010\u0007\u001a\u00020\b\u00a2\u0006\b\n\u0000\u001a\u0004\b.\u0010/R\u0011\u0010\u0017\u001a\u00020\u0016\u00a2\u0006\b\n\u0000\u001a\u0004\b0\u00101R\u0011\u0010\u000e\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b2\u0010*R\u0011\u0010\u0006\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b3\u0010*R\u0011\u0010 \u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b4\u0010*R\u0011\u0010\u001b\u001a\u00020\u0016\u00a2\u0006\b\n\u0000\u001a\u0004\b5\u00101R\u0011\u0010\u001f\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b6\u0010*R\u0011\u0010!\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b7\u0010*R\u0011\u0010&\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b8\u0010-R\u0011\u0010\u0019\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b9\u0010-R\u0011\u0010\u0002\u001a\u00020\u0003\u00a2\u0006\b\n\u0000\u001a\u0004\b:\u0010;R\u0013\u0010\u0010\u001a\u0004\u0018\u00010\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b<\u0010*R\u0011\u0010\u0013\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0013\u0010-R\u0011\u0010\u0018\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b\u0018\u0010-R\u0011\u0010$\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\b$\u0010-R\u0013\u0010\'\u001a\u0004\u0018\u00010\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\b=\u0010*R\u0011\u0010\t\u001a\u00020\n\u00a2\u0006\b\n\u0000\u001a\u0004\b>\u0010?R\u0011\u0010\u000b\u001a\u00020\n\u00a2\u0006\b\n\u0000\u001a\u0004\b@\u0010?R\u0011\u0010\u0004\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bA\u0010*R\u0011\u0010\u001c\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bB\u0010*R\u0011\u0010\u000f\u001a\u00020\n\u00a2\u0006\b\n\u0000\u001a\u0004\bC\u0010?R\u0011\u0010\u0015\u001a\u00020\u0016\u00a2\u0006\b\n\u0000\u001a\u0004\bD\u00101R\u0011\u0010\u001a\u001a\u00020\u0014\u00a2\u0006\b\n\u0000\u001a\u0004\bE\u0010-R\u0011\u0010#\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bF\u0010*R\u0011\u0010\u001d\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bG\u0010*R\u0017\u0010\u001e\u001a\b\u0012\u0004\u0012\u00020\u00050\u0012\u00a2\u0006\b\n\u0000\u001a\u0004\bH\u0010IR\u0019\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0005\u0018\u00010\u0012\u00a2\u0006\b\n\u0000\u001a\u0004\bJ\u0010IR\u0011\u0010\f\u001a\u00020\u0005\u00a2\u0006\b\n\u0000\u001a\u0004\bK\u0010*\u00a8\u0006p"}, d2 = {"Lcom/eskisehir/eventapp/data/model/Event;", "", "id", "", "name", "", "description", "category", "Lcom/eskisehir/eventapp/data/model/Category;", "latitude", "", "longitude", "venue", "address", "date", "price", "imageUrl", "tags", "", "isFeatured", "", "priceLevel", "", "crowdLevel", "isIndoor", "hasParking", "publicTransportFriendly", "durationMinutes", "preferredTimeOfDay", "socialMood", "suitableFor", "environmentType", "difficultyLevel", "groupSizeType", "activityLevel", "socialAspect", "isWheelchairAccessible", "allowsPhotography", "hasFoodDrink", "language", "(JLjava/lang/String;Ljava/lang/String;Lcom/eskisehir/eventapp/data/model/Category;DDLjava/lang/String;Ljava/lang/String;Ljava/lang/String;DLjava/lang/String;Ljava/util/List;ZIIZZZILjava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZLjava/lang/String;)V", "getActivityLevel", "()Ljava/lang/String;", "getAddress", "getAllowsPhotography", "()Z", "getCategory", "()Lcom/eskisehir/eventapp/data/model/Category;", "getCrowdLevel", "()I", "getDate", "getDescription", "getDifficultyLevel", "getDurationMinutes", "getEnvironmentType", "getGroupSizeType", "getHasFoodDrink", "getHasParking", "getId", "()J", "getImageUrl", "getLanguage", "getLatitude", "()D", "getLongitude", "getName", "getPreferredTimeOfDay", "getPrice", "getPriceLevel", "getPublicTransportFriendly", "getSocialAspect", "getSocialMood", "getSuitableFor", "()Ljava/util/List;", "getTags", "getVenue", "component1", "component10", "component11", "component12", "component13", "component14", "component15", "component16", "component17", "component18", "component19", "component2", "component20", "component21", "component22", "component23", "component24", "component25", "component26", "component27", "component28", "component29", "component3", "component30", "component31", "component4", "component5", "component6", "component7", "component8", "component9", "copy", "equals", "other", "hashCode", "toString", "app_debug"})
 public final class Event {
     private final long id = 0L;
     @org.jetbrains.annotations.NotNull()
@@ -34,6 +34,12 @@ public final class Event {
     private final boolean publicTransportFriendly = false;
     private final int durationMinutes = 0;
     @org.jetbrains.annotations.NotNull()
+    private final java.lang.String preferredTimeOfDay = null;
+    @org.jetbrains.annotations.NotNull()
+    private final java.lang.String socialMood = null;
+    @org.jetbrains.annotations.NotNull()
+    private final java.util.List<java.lang.String> suitableFor = null;
+    @org.jetbrains.annotations.NotNull()
     private final java.lang.String environmentType = null;
     @org.jetbrains.annotations.NotNull()
     private final java.lang.String difficultyLevel = null;
@@ -58,6 +64,9 @@ public final class Event {
     java.lang.String date, double price, @org.jetbrains.annotations.Nullable()
     java.lang.String imageUrl, @org.jetbrains.annotations.Nullable()
     java.util.List<java.lang.String> tags, boolean isFeatured, int priceLevel, int crowdLevel, boolean isIndoor, boolean hasParking, boolean publicTransportFriendly, int durationMinutes, @org.jetbrains.annotations.NotNull()
+    java.lang.String preferredTimeOfDay, @org.jetbrains.annotations.NotNull()
+    java.lang.String socialMood, @org.jetbrains.annotations.NotNull()
+    java.util.List<java.lang.String> suitableFor, @org.jetbrains.annotations.NotNull()
     java.lang.String environmentType, @org.jetbrains.annotations.NotNull()
     java.lang.String difficultyLevel, @org.jetbrains.annotations.NotNull()
     java.lang.String groupSizeType, @org.jetbrains.annotations.NotNull()
@@ -149,6 +158,21 @@ public final class Event {
     
     public final int getDurationMinutes() {
         return 0;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.String getPreferredTimeOfDay() {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.String getSocialMood() {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
+    public final java.util.List<java.lang.String> getSuitableFor() {
+        return null;
     }
     
     @org.jetbrains.annotations.NotNull()
@@ -255,7 +279,7 @@ public final class Event {
     }
     
     @org.jetbrains.annotations.NotNull()
-    public final java.lang.String component22() {
+    public final java.util.List<java.lang.String> component22() {
         return null;
     }
     
@@ -269,25 +293,40 @@ public final class Event {
         return null;
     }
     
-    public final boolean component25() {
-        return false;
-    }
-    
-    public final boolean component26() {
-        return false;
-    }
-    
-    public final boolean component27() {
-        return false;
-    }
-    
-    @org.jetbrains.annotations.Nullable()
-    public final java.lang.String component28() {
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.String component25() {
         return null;
     }
     
     @org.jetbrains.annotations.NotNull()
+    public final java.lang.String component26() {
+        return null;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.String component27() {
+        return null;
+    }
+    
+    public final boolean component28() {
+        return false;
+    }
+    
+    public final boolean component29() {
+        return false;
+    }
+    
+    @org.jetbrains.annotations.NotNull()
     public final java.lang.String component3() {
+        return null;
+    }
+    
+    public final boolean component30() {
+        return false;
+    }
+    
+    @org.jetbrains.annotations.Nullable()
+    public final java.lang.String component31() {
         return null;
     }
     
@@ -329,6 +368,9 @@ public final class Event {
     java.lang.String date, double price, @org.jetbrains.annotations.Nullable()
     java.lang.String imageUrl, @org.jetbrains.annotations.Nullable()
     java.util.List<java.lang.String> tags, boolean isFeatured, int priceLevel, int crowdLevel, boolean isIndoor, boolean hasParking, boolean publicTransportFriendly, int durationMinutes, @org.jetbrains.annotations.NotNull()
+    java.lang.String preferredTimeOfDay, @org.jetbrains.annotations.NotNull()
+    java.lang.String socialMood, @org.jetbrains.annotations.NotNull()
+    java.util.List<java.lang.String> suitableFor, @org.jetbrains.annotations.NotNull()
     java.lang.String environmentType, @org.jetbrains.annotations.NotNull()
     java.lang.String difficultyLevel, @org.jetbrains.annotations.NotNull()
     java.lang.String groupSizeType, @org.jetbrains.annotations.NotNull()

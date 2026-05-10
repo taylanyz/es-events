@@ -56,6 +56,34 @@ class RoadmapRepository @Inject constructor(
         return Result.success(Unit)
     }
 
+    /**
+     * Adds a suggestion into the route at a specific position.
+     */
+    suspend fun addSuggestedStop(stop: RoadmapStopEntity, insertAtIndex: Int): Result<Unit> {
+        val existingStops = roadmapStopDao.getAllStopsOnce().sortedBy { it.stopOrder }
+        
+        // Duplicate check
+        if (existingStops.any { it.eventId == stop.eventId }) {
+            return Result.failure(Exception("Bu mekan zaten rotanızda mevcut."))
+        }
+
+        // Insert at specific index and shift others
+        val newList = existingStops.toMutableList()
+        if (insertAtIndex >= newList.size) {
+            newList.add(stop)
+        } else {
+            newList.add(insertAtIndex, stop)
+        }
+
+        // Save all with updated order
+        // We use insertStop here because it handles auto-gen id for the new one and REPLACE for others
+        newList.forEachIndexed { index, item ->
+            roadmapStopDao.insertStop(item.copy(stopOrder = index))
+        }
+        
+        return Result.success(Unit)
+    }
+
     suspend fun removeStop(eventId: Long) {
         val stop = roadmapStopDao.getStopByEventId(eventId) ?: return
         roadmapStopDao.deleteStop(stop)
@@ -83,7 +111,8 @@ class RoadmapRepository @Inject constructor(
 
     suspend fun reorderStops(stops: List<RoadmapStopEntity>) {
         stops.forEachIndexed { index, stop ->
-            roadmapStopDao.updateStop(stop.copy(stopOrder = index))
+            // Use insertStop instead of updateStop to handle items that might not have an ID yet
+            roadmapStopDao.insertStop(stop.copy(stopOrder = index))
         }
     }
 }

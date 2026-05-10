@@ -6,6 +6,7 @@ import com.eskisehir.events.data.local.dao.CommentDao
 import com.eskisehir.events.data.local.dao.FavoriteDao
 import com.eskisehir.events.data.local.dao.FavoritePlaceDao
 import com.eskisehir.events.data.local.dao.RoadmapStopDao
+import com.eskisehir.events.data.local.dao.SavedRouteDao
 import com.eskisehir.events.data.local.dao.UserDao
 import com.eskisehir.events.data.local.dao.UserEventStatusDao
 import com.eskisehir.events.data.local.database.AppDatabase
@@ -76,6 +77,12 @@ object AppModule {
     @Singleton
     fun provideRoadmapStopDao(database: AppDatabase): RoadmapStopDao {
         return database.roadmapStopDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSavedRouteDao(database: AppDatabase): SavedRouteDao {
+        return database.savedRouteDao()
     }
 
     @Provides

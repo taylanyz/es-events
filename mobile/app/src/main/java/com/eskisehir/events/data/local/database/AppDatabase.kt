@@ -7,12 +7,14 @@ import com.eskisehir.events.data.local.dao.CommentDao
 import com.eskisehir.events.data.local.dao.FavoriteDao
 import com.eskisehir.events.data.local.dao.FavoritePlaceDao
 import com.eskisehir.events.data.local.dao.RoadmapStopDao
+import com.eskisehir.events.data.local.dao.SavedRouteDao
 import com.eskisehir.events.data.local.dao.UserDao
 import com.eskisehir.events.data.local.dao.UserEventStatusDao
 import com.eskisehir.events.data.local.entity.CommentEntity
 import com.eskisehir.events.data.local.entity.FavoriteEntity
 import com.eskisehir.events.data.local.entity.FavoritePlaceEntity
 import com.eskisehir.events.data.local.entity.RoadmapStopEntity
+import com.eskisehir.events.data.local.entity.SavedRouteEntity
 import com.eskisehir.events.data.local.entity.UserEventStatusEntity
 import com.eskisehir.events.data.local.entity.UserProfileEntity
 
@@ -27,9 +29,10 @@ import com.eskisehir.events.data.local.entity.UserProfileEntity
         CommentEntity::class,
         UserEventStatusEntity::class,
         FavoritePlaceEntity::class,
-        RoadmapStopEntity::class
+        RoadmapStopEntity::class,
+        SavedRouteEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -40,4 +43,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userEventStatusDao(): UserEventStatusDao
     abstract fun favoritePlaceDao(): FavoritePlaceDao
     abstract fun roadmapStopDao(): RoadmapStopDao
+    abstract fun savedRouteDao(): SavedRouteDao
 }

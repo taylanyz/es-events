@@ -13,6 +13,7 @@ data class RoadmapStopEntity(
     val longitude: Double,
     val locationName: String,
     val address: String,
-    val date: String, // ISO date string for same-day rule check
-    val stopOrder: Int // Order in roadmap
+    val date: String,
+    val stopOrder: Int,
+    val isAiRecommended: Boolean = false // Added to track AI suggestions
 )

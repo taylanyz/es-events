@@ -1,6 +1,7 @@
 package com.eskisehir.events.di
 
 import com.eskisehir.eventapp.data.remote.ai.GeminiApiService
+import com.eskisehir.eventapp.data.remote.places.PlacesApiService
 import com.eskisehir.events.data.remote.api.EventApiService
 import com.eskisehir.events.data.remote.maps.RoutesApiService
 import com.eskisehir.events.data.remote.weather.WeatherApiService
@@ -24,6 +25,7 @@ object NetworkModule {
     private const val WEATHER_BASE_URL = "https://api.open-meteo.com/"
     private const val ROUTES_BASE_URL = "https://routes.googleapis.com/"
     private const val GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/"
+    private const val PLACES_BASE_URL = "https://places.googleapis.com/"
 
     @Provides
     @Singleton
@@ -89,6 +91,17 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("placesRetrofit")
+    fun providePlacesRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(PLACES_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideEventApiService(@Named("appRetrofit") retrofit: Retrofit): EventApiService {
         return retrofit.create(EventApiService::class.java)
     }
@@ -103,6 +116,12 @@ object NetworkModule {
     @Singleton
     fun provideGeminiApiService(@Named("geminiRetrofit") retrofit: Retrofit): GeminiApiService {
         return retrofit.create(GeminiApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePlacesApiService(@Named("placesRetrofit") retrofit: Retrofit): PlacesApiService {
+        return retrofit.create(PlacesApiService::class.java)
     }
 
     @Provides

@@ -27,6 +27,7 @@ android {
 
         val googleMapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
         val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
+        val placesApiKey = localProperties.getProperty("PLACES_API_KEY") ?: googleMapsApiKey
 
         // Manifest placeholders for AndroidManifest.xml
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
@@ -34,6 +35,7 @@ android {
         // BuildConfig fields for Kotlin code
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+        buildConfigField("String", "PLACES_API_KEY", "\"$placesApiKey\"")
         
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

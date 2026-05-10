@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.eskisehir.events.data.local.entity.RoadmapStopEntity
 
 /**
@@ -30,12 +31,17 @@ fun RoadmapStopCard(
     onMoveDown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isSuggested = stop.eventId < 0
+
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = if (isSuggested) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f) 
+                             else MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -45,7 +51,10 @@ fun RoadmapStopCard(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                    .background(
+                        if (isSuggested) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary, 
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -60,6 +69,23 @@ fun RoadmapStopCard(
 
             // Details
             Column(modifier = Modifier.weight(1f)) {
+                if (isSuggested) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    ) {
+                        Text(
+                            text = "YOL ÜSTÜ DURAK",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                }
+                
                 Text(
                     text = stop.title,
                     style = MaterialTheme.typography.titleMedium,
@@ -72,7 +98,7 @@ fun RoadmapStopCard(
                         Icons.Default.Place,
                         null,
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = if (isSuggested) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
@@ -88,10 +114,18 @@ fun RoadmapStopCard(
             // Order Controls
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 IconButton(onClick = onMoveUp, enabled = !isFirst, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.KeyboardArrowUp, "Yukarı taşı", tint = if (isFirst) Color.LightGray else MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.KeyboardArrowUp, 
+                        "Yukarı taşı", 
+                        tint = if (isFirst) Color.LightGray else (if (isSuggested) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary)
+                    )
                 }
                 IconButton(onClick = onMoveDown, enabled = !isLast, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.KeyboardArrowDown, "Aşağı taşı", tint = if (isLast) Color.LightGray else MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.Default.KeyboardArrowDown, 
+                        "Aşağı taşı", 
+                        tint = if (isLast) Color.LightGray else (if (isSuggested) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary)
+                    )
                 }
             }
 

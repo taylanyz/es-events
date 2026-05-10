@@ -80,8 +80,7 @@ public final class FavoriteDao_Impl implements FavoriteDao {
   }
 
   @Override
-  public Object addFavorite(final FavoriteEntity favorite,
-      final Continuation<? super Unit> $completion) {
+  public Object addFavorite(final FavoriteEntity favorite, final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -95,12 +94,12 @@ public final class FavoriteDao_Impl implements FavoriteDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
   public Object removeFavorite(final FavoriteEntity favorite,
-      final Continuation<? super Unit> $completion) {
+      final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -114,12 +113,11 @@ public final class FavoriteDao_Impl implements FavoriteDao {
           __db.endTransaction();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object removeFavoriteById(final long eventId,
-      final Continuation<? super Unit> $completion) {
+  public Object removeFavoriteById(final long eventId, final Continuation<? super Unit> arg1) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
       @NonNull
@@ -140,11 +138,11 @@ public final class FavoriteDao_Impl implements FavoriteDao {
           __preparedStmtOfRemoveFavoriteById.release(_stmt);
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @Override
-  public Object getAllFavorites(final Continuation<? super List<FavoriteEntity>> $completion) {
+  public Object getAllFavorites(final Continuation<? super List<FavoriteEntity>> arg0) {
     final String _sql = "SELECT * FROM favorites";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
@@ -169,11 +167,11 @@ public final class FavoriteDao_Impl implements FavoriteDao {
           _statement.release();
         }
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object getAllFavoriteIds(final Continuation<? super List<Long>> $completion) {
+  public Object getAllFavoriteIds(final Continuation<? super List<Long>> arg0) {
     final String _sql = "SELECT eventId FROM favorites";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
@@ -199,11 +197,11 @@ public final class FavoriteDao_Impl implements FavoriteDao {
           _statement.release();
         }
       }
-    }, $completion);
+    }, arg0);
   }
 
   @Override
-  public Object isFavorite(final long eventId, final Continuation<? super Boolean> $completion) {
+  public Object isFavorite(final long eventId, final Continuation<? super Boolean> arg1) {
     final String _sql = "SELECT EXISTS(SELECT 1 FROM favorites WHERE eventId = ?)";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
@@ -233,7 +231,7 @@ public final class FavoriteDao_Impl implements FavoriteDao {
           _statement.release();
         }
       }
-    }, $completion);
+    }, arg1);
   }
 
   @NonNull

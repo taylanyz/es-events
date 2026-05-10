@@ -31,6 +31,7 @@ import com.eskisehir.eventapp.ui.screens.profile.ProfileScreen
 import com.eskisehir.eventapp.ui.screens.profile.EditProfileScreen
 import com.eskisehir.eventapp.ui.screens.login.LoginScreen
 import com.eskisehir.eventapp.ui.screens.login.RegisterScreen
+import com.eskisehir.eventapp.ui.screens.savedroutes.SavedRouteDetailScreen
 import com.eskisehir.events.presentation.screens.RoadmapScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -60,7 +61,7 @@ val bottomNavItems = listOf(
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentDestination = navBackStackEntry?.destination
 
     // Show bottom bar only on main tabs (not on detail, edit, login or register screens)
@@ -147,6 +148,7 @@ fun MainApp() {
                 ProfileScreen(
                     onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
                     onEventClick = { eventId -> navController.navigate(Screen.EventDetail.createRoute(eventId)) },
+                    onSavedRouteClick = { routeId -> navController.navigate(Screen.SavedRouteDetail.createRoute(routeId)) },
                     onLogoutClick = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
@@ -181,6 +183,21 @@ fun MainApp() {
             composable(Screen.EditProfile.route) {
                 EditProfileScreen(
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = Screen.SavedRouteDetail.route,
+                arguments = listOf(navArgument("routeId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val routeId = backStackEntry.arguments?.getLong("routeId") ?: 0L
+                SavedRouteDetailScreen(
+                    routeId = routeId,
+                    onBackClick = { navController.popBackStack() },
+                    onOpenInRoadmap = {
+                        navController.navigate(Screen.Roadmap.route) {
+                            popUpTo(Screen.Home.route)
+                        }
+                    }
                 )
             }
             composable(

@@ -19,6 +19,8 @@ import com.eskisehir.events.data.local.dao.FavoritePlaceDao;
 import com.eskisehir.events.data.local.dao.FavoritePlaceDao_Impl;
 import com.eskisehir.events.data.local.dao.RoadmapStopDao;
 import com.eskisehir.events.data.local.dao.RoadmapStopDao_Impl;
+import com.eskisehir.events.data.local.dao.SavedRouteDao;
+import com.eskisehir.events.data.local.dao.SavedRouteDao_Impl;
 import com.eskisehir.events.data.local.dao.UserDao;
 import com.eskisehir.events.data.local.dao.UserDao_Impl;
 import com.eskisehir.events.data.local.dao.UserEventStatusDao;
@@ -50,10 +52,12 @@ public final class AppDatabase_Impl extends AppDatabase {
 
   private volatile RoadmapStopDao _roadmapStopDao;
 
+  private volatile SavedRouteDao _savedRouteDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(6) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `favorites` (`eventId` INTEGER NOT NULL, PRIMARY KEY(`eventId`))");
@@ -61,9 +65,10 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("CREATE TABLE IF NOT EXISTS `comments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, `userEmail` TEXT NOT NULL, `userName` TEXT NOT NULL, `content` TEXT NOT NULL, `timestamp` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `user_event_status` (`eventId` INTEGER NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`eventId`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `favorite_places` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `location` TEXT NOT NULL, `category` TEXT)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `roadmap_stops` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, `title` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `locationName` TEXT NOT NULL, `address` TEXT NOT NULL, `date` TEXT NOT NULL, `stopOrder` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `roadmap_stops` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, `title` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `locationName` TEXT NOT NULL, `address` TEXT NOT NULL, `date` TEXT NOT NULL, `stopOrder` INTEGER NOT NULL, `isAiRecommended` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `saved_routes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userEmail` TEXT NOT NULL, `title` TEXT NOT NULL, `date` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `totalDurationSeconds` INTEGER NOT NULL, `totalDistanceMeters` INTEGER NOT NULL, `travelMode` TEXT NOT NULL, `stops` TEXT NOT NULL, `segments` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c4f81e67dec0512a557eae29ff4b932c')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '77ae9a2ee5e3be64bcd3934e51646273')");
       }
 
       @Override
@@ -74,6 +79,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("DROP TABLE IF EXISTS `user_event_status`");
         db.execSQL("DROP TABLE IF EXISTS `favorite_places`");
         db.execSQL("DROP TABLE IF EXISTS `roadmap_stops`");
+        db.execSQL("DROP TABLE IF EXISTS `saved_routes`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -184,7 +190,7 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoFavoritePlaces + "\n"
                   + " Found:\n" + _existingFavoritePlaces);
         }
-        final HashMap<String, TableInfo.Column> _columnsRoadmapStops = new HashMap<String, TableInfo.Column>(9);
+        final HashMap<String, TableInfo.Column> _columnsRoadmapStops = new HashMap<String, TableInfo.Column>(10);
         _columnsRoadmapStops.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("eventId", new TableInfo.Column("eventId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -194,6 +200,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsRoadmapStops.put("address", new TableInfo.Column("address", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("date", new TableInfo.Column("date", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("stopOrder", new TableInfo.Column("stopOrder", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRoadmapStops.put("isAiRecommended", new TableInfo.Column("isAiRecommended", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysRoadmapStops = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesRoadmapStops = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoRoadmapStops = new TableInfo("roadmap_stops", _columnsRoadmapStops, _foreignKeysRoadmapStops, _indicesRoadmapStops);
@@ -203,9 +210,29 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoRoadmapStops + "\n"
                   + " Found:\n" + _existingRoadmapStops);
         }
+        final HashMap<String, TableInfo.Column> _columnsSavedRoutes = new HashMap<String, TableInfo.Column>(10);
+        _columnsSavedRoutes.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("userEmail", new TableInfo.Column("userEmail", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("date", new TableInfo.Column("date", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("totalDurationSeconds", new TableInfo.Column("totalDurationSeconds", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("totalDistanceMeters", new TableInfo.Column("totalDistanceMeters", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("travelMode", new TableInfo.Column("travelMode", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("stops", new TableInfo.Column("stops", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSavedRoutes.put("segments", new TableInfo.Column("segments", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysSavedRoutes = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesSavedRoutes = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoSavedRoutes = new TableInfo("saved_routes", _columnsSavedRoutes, _foreignKeysSavedRoutes, _indicesSavedRoutes);
+        final TableInfo _existingSavedRoutes = TableInfo.read(db, "saved_routes");
+        if (!_infoSavedRoutes.equals(_existingSavedRoutes)) {
+          return new RoomOpenHelper.ValidationResult(false, "saved_routes(com.eskisehir.events.data.local.entity.SavedRouteEntity).\n"
+                  + " Expected:\n" + _infoSavedRoutes + "\n"
+                  + " Found:\n" + _existingSavedRoutes);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "c4f81e67dec0512a557eae29ff4b932c", "6dbae4febcd3fb207ff641c4f919e2d9");
+    }, "77ae9a2ee5e3be64bcd3934e51646273", "72919874a79098f1412f48e88b80af96");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -216,7 +243,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "favorites","user_profile","comments","user_event_status","favorite_places","roadmap_stops");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "favorites","user_profile","comments","user_event_status","favorite_places","roadmap_stops","saved_routes");
   }
 
   @Override
@@ -231,6 +258,7 @@ public final class AppDatabase_Impl extends AppDatabase {
       _db.execSQL("DELETE FROM `user_event_status`");
       _db.execSQL("DELETE FROM `favorite_places`");
       _db.execSQL("DELETE FROM `roadmap_stops`");
+      _db.execSQL("DELETE FROM `saved_routes`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -251,6 +279,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     _typeConvertersMap.put(UserEventStatusDao.class, UserEventStatusDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(FavoritePlaceDao.class, FavoritePlaceDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(RoadmapStopDao.class, RoadmapStopDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(SavedRouteDao.class, SavedRouteDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -349,6 +378,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _roadmapStopDao = new RoadmapStopDao_Impl(this);
         }
         return _roadmapStopDao;
+      }
+    }
+  }
+
+  @Override
+  public SavedRouteDao savedRouteDao() {
+    if (_savedRouteDao != null) {
+      return _savedRouteDao;
+    } else {
+      synchronized(this) {
+        if(_savedRouteDao == null) {
+          _savedRouteDao = new SavedRouteDao_Impl(this);
+        }
+        return _savedRouteDao;
       }
     }
   }

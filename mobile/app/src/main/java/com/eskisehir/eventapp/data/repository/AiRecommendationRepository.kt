@@ -20,11 +20,9 @@ class AiRecommendationRepository @Inject constructor() {
         val apiKey = BuildConfig.GEMINI_API_KEY
         
         Log.d(TAG, "Gemini request started")
-        Log.d(TAG, "API key empty: ${apiKey.isBlank()}")
 
         if (apiKey.isBlank()) {
             Log.e(TAG, "GEMINI_API_KEY is empty")
-            Log.d(TAG, "Recommendation source: LOCAL_FALLBACK (API Key missing)")
             return Result.success(getLocalFallback(preferences))
         }
 
@@ -32,8 +30,6 @@ class AiRecommendationRepository @Inject constructor() {
         val prompt = buildPrompt(preferences, candidateEvents)
 
         return try {
-            Log.d(TAG, "Model: $GEMINI_MODEL")
-            
             val generativeModel = GenerativeModel(
                 modelName = GEMINI_MODEL,
                 apiKey = apiKey,
@@ -51,48 +47,36 @@ class AiRecommendationRepository @Inject constructor() {
             Log.d(TAG, "Raw response text: $rawText")
 
             val jsonText = extractJsonObject(rawText)
-            Log.d(TAG, "Extracted JSON: $jsonText")
-
             val recommendationResponse = gson.fromJson(jsonText, AiRecommendationResponse::class.java)
             
-            Log.d(TAG, "Parse edilen recommendation listesi size: ${recommendationResponse.recommendations.size}")
-
-            // Mevcut olmayan eventId'leri filtrele
             val validRecommendations = recommendationResponse.recommendations.filter { rec ->
                 SampleData.events.any { it.id == rec.eventId }
             }.map { rec ->
                 val event = SampleData.events.find { it.id == rec.eventId }!!
-                Log.d(TAG, "Recommendation: ID=${rec.eventId}, Title=${event.name}, Score=${rec.score}, Reason=${rec.reason}")
                 
-                // Eğer AI tarafından gelen reason çok kısaysa veya varsayılan değerse fallback üret
+                // If AI reason is weak, augment it
                 val displayReason = if (rec.reason.isNullOrBlank() || rec.reason.length < 30) {
-                    buildFallbackReason(event, preferences)
+                    buildDetailedReason(event, preferences)
                 } else {
                     rec.reason
                 }
 
                 EventRecommendation(
                     eventId = rec.eventId,
-                    score = rec.score,
+                    score = calculateLogicalScore(event, preferences),
                     reason = displayReason,
-                    matchedPreferences = if (rec.matchedPreferences.isNullOrEmpty()) buildMatchedPreferences(event, preferences) else rec.matchedPreferences
+                    matchedPreferences = if (rec.matchedPreferences.isNullOrEmpty()) buildMatchedList(event, preferences) else rec.matchedPreferences
                 )
             }
 
             if (validRecommendations.isEmpty()) {
-                Log.w(TAG, "AI geçerli öneri bulamadı veya tümü filtrelendi. Yerel Öneri'ye geçiliyor.")
-                Log.d(TAG, "Recommendation source: LOCAL_FALLBACK (Empty AI results)")
                 Result.success(getLocalFallback(preferences))
             } else {
-                Log.d(TAG, "Recommendation source: GEMINI")
-                Result.success(validRecommendations)
+                Result.success(validRecommendations.sortedByDescending { it.score })
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Parse error stacktrace: ${e.message}", e)
-            Log.d(TAG, "Recommendation source: LOCAL_FALLBACK (Error during AI call)")
-            
-            // Kritik hata durumunda Yerel Önerileri (Fallback) döndür
+            Log.e(TAG, "Error during AI call, using fallback: ${e.message}", e)
             Result.success(getLocalFallback(preferences))
         }
     }
@@ -100,141 +84,135 @@ class AiRecommendationRepository @Inject constructor() {
     private fun extractJsonObject(raw: String): String {
         val start = raw.indexOf("{")
         val end = raw.lastIndexOf("}")
-        if (start == -1 || end == -1 || end <= start) {
-            throw IllegalArgumentException("Gemini response içinde geçerli JSON object bulunamadı.")
-        }
+        if (start == -1 || end == -1 || end <= start) return "{}"
         return raw.substring(start, end + 1)
     }
 
-    private fun getLocalFallback(preferences: RecommendationPreferences): List<EventRecommendation> {
-        Log.i(TAG, "Yerel öneri sistemi (Fallback) çalışıyor...")
+    private fun getLocalFallback(prefs: RecommendationPreferences): List<EventRecommendation> {
         return SampleData.events.map { event ->
-            val matches = mutableListOf<String>()
-            var totalScore = 15 
-
-            if (preferences.selectedCategories.contains(event.category)) {
-                totalScore += 25
-                matches.add(event.category.displayNameTr)
-            }
-            
-            if (preferences.budget == BudgetPreference.FREE && event.price == 0.0) {
-                totalScore += 15
-                matches.add("Ücretsiz")
-            } else if (preferences.budget != BudgetPreference.ANY && event.price > 0 && event.price <= 200) {
-                totalScore += 10
-                matches.add("Ekonomik")
-            }
-
-            if (preferences.transport == TransportPreference.PUBLIC && event.publicTransportFriendly) {
-                totalScore += 15
-                matches.add("Toplu Taşıma")
-            }
-
-            if (preferences.parking == true && event.hasParking) {
-                totalScore += 10
-                matches.add("Otopark")
-            }
-
-            if (preferences.isIndoor != null && event.isIndoor == preferences.isIndoor) {
-                totalScore += 10
-                matches.add(if (event.isIndoor) "Kapalı Mekan" else "Açık Hava")
-            }
-
-            if (preferences.crowd != CrowdPreference.ANY && event.crowdLevel == getCrowdLevelFromPref(preferences.crowd)) {
-                totalScore += 15
-                matches.add(preferences.crowd.label)
-            }
-
             EventRecommendation(
                 eventId = event.id,
-                score = totalScore.coerceAtMost(100),
-                reason = buildFallbackReason(event, preferences),
-                matchedPreferences = matches.ifEmpty { listOf(event.category.displayNameTr) }
+                score = calculateLogicalScore(event, prefs),
+                reason = buildDetailedReason(event, prefs),
+                matchedPreferences = buildMatchedList(event, prefs)
             )
-        }
-        .sortedByDescending { it.score }
-        .take(5)
+        }.sortedByDescending { it.score }.take(5)
     }
 
-    private fun buildFallbackReason(event: Event, prefs: RecommendationPreferences): String {
-        val sentences = mutableListOf<String>()
+    private fun calculateLogicalScore(event: Event, prefs: RecommendationPreferences): Int {
+        var score = 10
         
-        sentences.add("${event.name} etkinliği, seçtiğin ${event.category.displayNameTr.lowercase()} kategorisine uygunluğu ve ${event.venue} konumundaki yapısıyla öne çıkıyor.")
-
-        val transportText = if (event.publicTransportFriendly) "toplu taşımayla ulaşımı kolay" else "ulaşımı pratik"
-        val indoorText = if (event.isIndoor) "kapalı bir alanda" else "açık hava atmosferinde"
+        // Category match (+25)
+        if (prefs.selectedCategories.contains(event.category)) score += 25
         
-        val prefMatch = if (prefs.transport == TransportPreference.PUBLIC && event.publicTransportFriendly) {
-            "tercih ettiğin toplu taşıma seçeneğine tam uyum sağlıyor"
-        } else {
-            "planlarını kolaylaştıracak bir konumda yer alıyor"
-        }
-
-        sentences.add("Bu aktivite $indoorText gerçekleşeceği için konforlu bir deneyim sunarken, $transportText olması $prefMatch.")
-
-        if (event.price == 0.0) {
-            sentences.add("Ayrıca bütçe dostu, tamamen ücretsiz bir program olması Eskişehir'de değerlendirmen gereken harika bir fırsat sunuyor.")
-        } else if (event.crowdLevel == 1) {
-            sentences.add("Sakin ve huzurlu bir atmosfer arayışındaysan, bu etkinliğin sunduğu dingin ortam beklentilerini fazlasıyla karşılayacaktır.")
-        } else {
-            sentences.add("Şehrin sosyal dokusuna karışmak ve hareketli bir gün geçirmek isteyen kullanıcılar için ideal bir alternatif.")
-        }
-
-        return sentences.take(3).joinToString(" ")
-    }
-
-    private fun buildMatchedPreferences(event: Event, prefs: RecommendationPreferences): List<String> {
-        val list = mutableListOf<String>()
-        list.add(event.category.displayNameTr)
-        if (event.price == 0.0) list.add("Ücretsiz")
-        if (event.isIndoor) list.add("Kapalı Mekan") else list.add("Açık Hava")
-        if (event.publicTransportFriendly) list.add("Toplu Taşıma")
-        if (event.hasParking) list.add("Otopark Var")
-        return list.take(4)
-    }
-
-    private fun getCrowdLevelFromPref(pref: CrowdPreference): Int {
-        return when(pref) {
+        // Crowd level match (+15)
+        val prefCrowdLevel = when(prefs.crowd) {
             CrowdPreference.QUIET -> 1
             CrowdPreference.MEDIUM -> 2
-            CrowdPreference.SOCIAL -> 3
-            else -> 2
+            else -> null
         }
+        if (prefCrowdLevel != null && event.crowdLevel == prefCrowdLevel) score += 15
+        
+        // Companion match (+15)
+        val companionTag = when(prefs.companion) {
+            CompanionPreference.ALONE -> "alone"
+            CompanionPreference.FRIENDS -> "friends"
+            CompanionPreference.FAMILY -> "family"
+            CompanionPreference.PARTNER -> "couple"
+            CompanionPreference.GROUP -> "group"
+            else -> null
+        }
+        if (companionTag != null && event.suitableFor.contains(companionTag)) score += 15
+        
+        // Indoor/Outdoor match (+10)
+        if (prefs.isIndoor != null && event.isIndoor == prefs.isIndoor) score += 10
+        
+        // Time of day match (+10)
+        val prefTimeStr = when(prefs.timeOfDay) {
+            TimeOfDayPreference.MORNING -> "morning"
+            TimeOfDayPreference.AFTERNOON -> "afternoon"
+            TimeOfDayPreference.EVENING -> "evening"
+            TimeOfDayPreference.NIGHT -> "night"
+            else -> null
+        }
+        if (prefTimeStr != null && event.preferredTimeOfDay == prefTimeStr) score += 10
+        
+        // Budget match (+10)
+        if (prefs.budget == BudgetPreference.FREE && event.price == 0.0) score += 15
+        else if (prefs.budget == BudgetPreference.AFFORDABLE && event.priceLevel <= 2) score += 10
+        
+        // Transport match (+10)
+        if (prefs.transport == TransportPreference.PUBLIC && event.publicTransportFriendly) score += 10
+        
+        return score.coerceIn(0, 100)
+    }
+
+    private fun buildDetailedReason(event: Event, prefs: RecommendationPreferences): String {
+        val reasons = mutableListOf<String>()
+        
+        if (prefs.selectedCategories.contains(event.category)) {
+            reasons.add("Seçtiğin ${event.category.displayNameTr.lowercase()} kategorisine tam uyum sağlıyor.")
+        }
+        
+        if (prefs.isIndoor != null) {
+            if (prefs.isIndoor == event.isIndoor) {
+                reasons.add(if (event.isIndoor) "Kapalı mekan tercihinle örtüşüyor." else "Açık hava atmosferi sunuyor.")
+            }
+        }
+        
+        if (prefs.timeOfDay != TimeOfDayPreference.ANY) {
+            reasons.add("${prefs.timeOfDay.label.lowercase()} saatleri için ideal bir plan.")
+        }
+        
+        if (prefs.budget == BudgetPreference.FREE && event.price == 0.0) {
+            reasons.add("Bütçe dostu, tamamen ücretsiz bir seçenek.")
+        }
+        
+        if (reasons.isEmpty()) {
+            return "${event.name} etkinliği, Eskişehir'deki merkezi konumu ve popülerliği nedeniyle tercihlerine yakın görünüyor."
+        }
+        
+        return reasons.joinToString(" ") + " Ayrıca ${event.venue} gibi harika bir konumda yer alması avantaj sağlıyor."
+    }
+
+    private fun buildMatchedList(event: Event, prefs: RecommendationPreferences): List<String> {
+        val list = mutableListOf<String>()
+        list.add(event.category.displayNameTr)
+        if (prefs.isIndoor == event.isIndoor) list.add(if (event.isIndoor) "Kapalı Mekan" else "Açık Hava")
+        if (event.price == 0.0) list.add("Ücretsiz")
+        if (event.publicTransportFriendly) list.add("Toplu Taşıma")
+        return list
     }
 
     private fun getCandidateEvents(preferences: RecommendationPreferences): List<Event> {
-        return SampleData.events.filter { event ->
-            preferences.selectedCategories.isEmpty() || event.category in preferences.selectedCategories
-        }.shuffled().take(20).ifEmpty { SampleData.events.shuffled().take(20) }
+        return SampleData.events.shuffled().take(20)
     }
 
     private fun buildPrompt(prefs: RecommendationPreferences, events: List<Event>): String {
         val eventsData = events.joinToString("\n") { 
-            "ID: ${it.id}, Ad: ${it.name}, Konum: ${it.venue}, Kategori: ${it.category.displayNameTr}, Fiyat: ${it.price} TL, Mekan: ${if(it.isIndoor) "Kapalı" else "Açık"}, Ulaşım: ${if(it.publicTransportFriendly) "Kolay" else "Zor"}, Kalabalık: ${it.crowdLevel}"
+            "ID: ${it.id}, Ad: ${it.name}, Cat: ${it.category.displayNameTr}, Price: ${it.price} TL, Indoor: ${it.isIndoor}, PT: ${it.publicTransportFriendly}, Crowd: ${it.crowdLevel}, Time: ${it.preferredTimeOfDay}"
         }
 
         return """
             Sen bir Eskişehir etkinlik öneri uzmanısın. 
             Kullanıcının tercihleri:
-            - Zaman: ${prefs.time.label}
-            - Bütçe: ${prefs.budget.label}
-            - Ortam: ${prefs.crowd.label}
-            - Kategoriler: ${prefs.selectedCategories.joinToString { it.displayNameTr }}
-            - Ulaşım: ${prefs.transport.label}
+            - Kategori: ${prefs.selectedCategories.joinToString { it.displayNameTr }}
+            - Kalabalık: ${prefs.crowd.label}
+            - Kiminle: ${prefs.companion.label}
             - Mekan: ${if (prefs.isIndoor == true) "Kapalı" else if (prefs.isIndoor == false) "Açık" else "Fark Etmez"}
+            - Zaman: ${prefs.timeOfDay.label}
+            - Bütçe: ${prefs.budget.label}
+            - Ulaşım: ${prefs.transport.label}
+            - Süre: ${prefs.duration.label}
+            - Sosyal Ortam: ${prefs.socialMood.label}
 
-            Aşağıdaki Eskişehir etkinlik listesini incele ve en uygun TOP 5 etkinliği seç.
+            Aşağıdaki etkinlik listesini incele ve kullanıcıya en uygun TOP 5 etkinliği seç.
             Etkinlikler:
             $eventsData
 
             KRİTİK TALİMATLAR:
-            1. "reason" alanı mutlaka EN AZ 2-3 CÜMLE ve 35-70 kelime arasında olmalı.
-            2. "reason" metni mutlaka etkinliğin adına, konumuna (venue), ulaşım kolaylığına ve bütçe/mekan tercihlerine özel olarak değinmeli.
-            3. "Tercihlerine göre önerildi" gibi kısa ve jenerik cümlelerden ASLA kullanma.
-            4. "matchedPreferences" listesine en az 3-4 adet eşleşen spesifik kriter yaz (Örn: "Düşük Bütçe", "Sakin Ortam", "Toplu Taşıma", "Açık Hava").
-            5. Sadece Türkçe kullan ve samimi, davetkar bir dil benimse.
-            6. Yeni etkinlik uydurma, sadece listedeki ID'leri kullan.
-            7. Cevabı SADECE geçerli bir saf JSON objesi olarak döndür. Markdown KULLANMA.
+            1. "reason" alanı mutlaka kullanıcının tercihlerine (Örn: bütçe, zaman, kalabalık) değinen KİŞİSEL bir açıklama olmalı.
+            2. Cevabı SADECE geçerli bir JSON objesi olarak döndür. Markdown KULLANMA.
 
             FORMAT:
             {
@@ -242,8 +220,8 @@ class AiRecommendationRepository @Inject constructor() {
                 {
                   "eventId": Long,
                   "score": Int(0-100),
-                  "reason": "Bu etkinlik, seçtiğin spor ve açık hava tercihlerine tam uyum sağladığı için önerildi. Kanlıkavak bölgesi Eskişehir'in en huzurlu rotalarından birini sunduğundan, kalabalıktan uzak ve aktif bir gün geçirmek isteyenler için ideal bir atmosfer vadediyor. Ayrıca bütçe dostu olması ve toplu taşımayla ulaşımının kısalığı planlarını kolaylaştıracaktır.",
-                  "matchedPreferences": ["Spor", "Açık Hava", "Sakin", "Ulaşımı Kolay"]
+                  "reason": "Bu etkinlik bütçenize uygun ve sakin bir ortam sunduğu için seçildi...",
+                  "matchedPreferences": ["Kategori", "Zaman", "Bütçe"]
                 }
               ]
             }
