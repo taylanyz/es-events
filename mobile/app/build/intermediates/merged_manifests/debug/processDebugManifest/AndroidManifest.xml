@@ -11,7 +11,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Include required permissions for Google Maps API to run. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature
@@ -60,10 +59,13 @@
         android:testOnly="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar" >
 
-        <!-- Google Maps API Key -->
+        <!--
+           CRITICAL: The API Key must be defined exactly with this name
+           and must be placed INSIDE the <application> tag.
+        -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="" />
+            android:value="AIzaSyAAKqWhumVPP4tqShTpOVUkiuD4gawLMdc" />
 
         <activity
             android:name="com.eskisehir.eventapp.MainActivity"
@@ -75,9 +77,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="androidx.compose.ui.tooling.PreviewActivity"
-            android:exported="true" /> <!-- Needs to be explicitly declared on P+ -->
+        <!-- Needs to be explicitly declared on P+ -->
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
@@ -107,10 +107,6 @@
                 android:value="androidx.startup" />
         </provider>
 
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"
             android:directBootAware="false"
@@ -130,6 +126,10 @@
                 <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
             </intent-filter>
         </receiver>
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>

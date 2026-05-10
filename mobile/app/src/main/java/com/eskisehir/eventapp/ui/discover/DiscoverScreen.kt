@@ -36,8 +36,21 @@ fun DiscoverScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val preferences by viewModel.preferences.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Hata mesajlarını Snackbar olarak göster
+    LaunchedEffect(uiState) {
+        if (uiState is RecommendationUiState.Error) {
+            snackbarHostState.showSnackbar(
+                message = (uiState as RecommendationUiState.Error).message,
+                duration = SnackbarDuration.Long
+            )
+            viewModel.reset() // Formu tekrar görünür kıl
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Yapay Zeka Keşfi", fontWeight = FontWeight.ExtraBold) },
@@ -47,7 +60,7 @@ fun DiscoverScreen(
                     }
                 },
                 actions = {
-                    if (uiState !is RecommendationUiState.Idle) {
+                    if (uiState is RecommendationUiState.Success) {
                         IconButton(onClick = { viewModel.reset() }) {
                             Icon(Icons.Default.Refresh, contentDescription = "Sıfırla")
                         }
@@ -58,7 +71,7 @@ fun DiscoverScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (uiState) {
-                is RecommendationUiState.Idle -> {
+                is RecommendationUiState.Idle, is RecommendationUiState.Error -> {
                     PreferenceForm(
                         preferences = preferences,
                         onPrefsChanged = { viewModel.updatePreferences(it) },
@@ -71,9 +84,6 @@ fun DiscoverScreen(
                 is RecommendationUiState.Success -> {
                     val results = (uiState as RecommendationUiState.Success).recommendations
                     RecommendationsList(results, onEventClick)
-                }
-                is RecommendationUiState.Error -> {
-                    ErrorState((uiState as RecommendationUiState.Error).message) { viewModel.reset() }
                 }
             }
         }
@@ -275,23 +285,6 @@ fun LoadingState() {
 }
 
 @Composable
-fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(Icons.Default.ErrorOutline, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.height(16.dp))
-        Text(message, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.height(24.dp))
-        Button(onClick = onRetry) {
-            Text("Tekrar Dene")
-        }
-    }
-}
-
-@Composable
 fun RecommendationsList(
     recommendations: List<Pair<Event, EventRecommendation>>,
     onEventClick: (Long) -> Unit
@@ -364,9 +357,11 @@ fun AiRecommendationCard(event: Event, rec: EventRecommendation, onClick: () -> 
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            rec.reason,
+                            text = rec.reason,
                             style = MaterialTheme.typography.bodyMedium,
-                            lineHeight = 20.sp
+                            lineHeight = 20.sp,
+                            maxLines = 8,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -380,7 +375,7 @@ fun AiRecommendationCard(event: Event, rec: EventRecommendation, onClick: () -> 
                             shape = CircleShape
                         ) {
                             Text(
-                                pref,
+                                text = pref,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Medium

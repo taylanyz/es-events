@@ -37,19 +37,19 @@ class DiscoverViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = RecommendationUiState.Loading
             aiRepository.getRecommendations(currentPrefs).fold(
-                onSuccess = { recommendations ->
-                    val eventsWithRecommendations = recommendations.mapNotNull { rec ->
+                onSuccess = { results ->
+                    val eventsWithRecommendations = results.mapNotNull { rec ->
                         val event = SampleData.events.find { it.id == rec.eventId }
                         if (event != null) event to rec else null
                     }
                     if (eventsWithRecommendations.isEmpty()) {
-                        _uiState.value = RecommendationUiState.Error("Sana uygun bir etkinlik bulamadık. Tercihlerini değiştirmeyi deneyebilirsin.")
+                        _uiState.value = RecommendationUiState.Error("Şu anda tercihlerine uygun etkinlik bulamadık. Farklı tercihler deneyebilirsin.")
                     } else {
                         _uiState.value = RecommendationUiState.Success(eventsWithRecommendations)
                     }
                 },
                 onFailure = { error ->
-                    _uiState.value = RecommendationUiState.Error(error.message ?: "Bilinmeyen bir hata oluştu.")
+                    _uiState.value = RecommendationUiState.Error(error.message ?: "Beklenmeyen bir hata oluştu.")
                 }
             )
         }

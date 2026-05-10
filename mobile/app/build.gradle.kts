@@ -7,6 +7,13 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+// Robust local.properties loading
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
 android {
     namespace = "com.eskisehir.eventapp"
     compileSdk = 34
@@ -18,18 +25,17 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // Read API key from local.properties correctly
-        val localProperties = Properties()
-        val localPropertiesFile = project.rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localProperties.load(localPropertiesFile.inputStream())
-        }
         val googleMapsApiKey = localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
         val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
 
+        // Manifest placeholders for AndroidManifest.xml
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = googleMapsApiKey
+
+        // BuildConfig fields for Kotlin code
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+        
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -56,7 +62,7 @@ dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
     implementation(composeBom)
 
-    // Google AI SDK (Gemini) - Kesin Çözüm İçin
+    // Google AI SDK (Gemini)
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     // Core Compose
@@ -74,38 +80,33 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Retrofit (for API calls)
+    // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // Coil (image loading)
+    // Coil
     implementation("io.coil-kt:coil-compose:2.5.0")
 
-    // Debug
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    // Hilt / Dagger
+    // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Room Database
+    // Room
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
 
-    // Google Maps Compose
+    // Google Maps
     implementation("com.google.maps.android:maps-compose:4.3.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
-
-    // Google Play Services Location
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
     // Coroutines for Play Services
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
 
-    // OpenStreetMap (free, no API key needed)
+    // OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

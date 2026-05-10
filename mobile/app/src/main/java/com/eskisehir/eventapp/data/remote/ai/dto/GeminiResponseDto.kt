@@ -2,9 +2,15 @@ package com.eskisehir.eventapp.data.remote.ai.dto
 
 import com.google.gson.annotations.SerializedName
 
+/**
+ * DTO for Gemini API response.
+ * Includes error handling fields with nullable details to prevent parsing crashes.
+ */
 data class GeminiResponseDto(
     @SerializedName("candidates")
-    val candidates: List<GeminiCandidate>? = null
+    val candidates: List<GeminiCandidate>? = null,
+    @SerializedName("error")
+    val error: GeminiError? = null
 )
 
 data class GeminiCandidate(
@@ -22,19 +28,33 @@ data class GeminiPart(
     val text: String? = null
 )
 
-// Internal parser model for the JSON block Gemini returns inside text
-data class AIRecommendationList(
-    @SerializedName("recommendations")
-    val recommendations: List<AIEventRecommendation>
+data class GeminiError(
+    @SerializedName("code")
+    val code: Int? = null,
+    @SerializedName("message")
+    val message: String? = null,
+    @SerializedName("status")
+    val status: String? = null,
+    @SerializedName("details")
+    val details: List<Any>? = null 
 )
 
-data class AIEventRecommendation(
+/**
+ * Structured output model for AI recommendations.
+ * Uses default values to prevent parsing crashes.
+ */
+data class AiRecommendationResponse(
+    @SerializedName("recommendations")
+    val recommendations: List<AiRecommendationDto> = emptyList()
+)
+
+data class AiRecommendationDto(
     @SerializedName("eventId")
     val eventId: Long,
     @SerializedName("score")
-    val score: Int,
+    val score: Int = 0,
     @SerializedName("reason")
-    val reason: String,
+    val reason: String = "Bu etkinlik tercihlerinizle uyumlu görünüyor.",
     @SerializedName("matchedPreferences")
-    val matchedPreferences: List<String>
+    val matchedPreferences: List<String> = emptyList()
 )

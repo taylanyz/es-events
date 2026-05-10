@@ -13,11 +13,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.eskisehir.eventapp.BuildConfig
 import com.eskisehir.events.util.LocationUtils
 import com.eskisehir.events.util.PolylineDecoder
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -26,6 +28,14 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.RoundCap
 import com.google.maps.android.compose.*
+
+/**
+ * Coordinate validator for Eskisehir region.
+ */
+fun isValidEskisehirCoordinate(latitude: Double?, longitude: Double?): Boolean {
+    if (latitude == null || longitude == null) return false
+    return latitude in 39.0..40.5 && longitude in 29.5..31.5
+}
 
 @Composable
 fun EventLocationMapCard(
@@ -42,25 +52,41 @@ fun EventLocationMapCard(
     userLocation: LatLng? = null
 ) {
     val context = LocalContext.current
-    val eventLocation = remember(latitude, longitude) { LatLng(latitude, longitude) }
+    
+    // 1. Etkinlik konumunu doğrula ve LatLng oluştur (Sıralama: Latitude, Longitude)
+    val eventLatLng = remember(latitude, longitude) {
+        if (isValidEskisehirCoordinate(latitude, longitude)) {
+            LatLng(latitude, longitude)
+        } else {
+            Log.w("MapsDebug", "Geçersiz koordinat ($latitude, $longitude), Eskişehir merkezi kullanılıyor.")
+            LatLng(39.7767, 30.5206) // Fallback: Eskişehir Valiliği
+        }
+    }
     
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(eventLocation, 15f)
+        position = CameraPosition.fromLatLngZoom(eventLatLng, 15f)
     }
 
-    LaunchedEffect(userLocation, eventLocation) {
+    // 2. Kamera Animasyonu - Okyanus kaymasını engelleyen mantık
+    LaunchedEffect(userLocation, eventLatLng, encodedPolyline) {
         try {
-            if (userLocation != null && encodedPolyline != null) {
+            val isUserInEskisehir = userLocation != null && isValidEskisehirCoordinate(userLocation.latitude, userLocation.longitude)
+            
+            if (isUserInEskisehir && !encodedPolyline.isNullOrEmpty()) {
+                // Eğer hem kullanıcı hem etkinlik Eskişehir'deyse ikisini de göster
                 val bounds = LatLngBounds.builder()
-                    .include(userLocation)
-                    .include(eventLocation)
+                    .include(userLocation!!)
+                    .include(eventLatLng)
                     .build()
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 120))
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 150))
+                Log.d("MapsDebug", "Kamera hem kullanıcıyı hem etkinliği kapsıyor.")
             } else {
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(eventLocation, 16f))
+                // Kullanıcı çok uzaktaysa (örn: Amerika/Emulator) sadece etkinliğe odaklan
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(eventLatLng, 15f))
+                Log.d("MapsDebug", "Kullanıcı Eskişehir dışında veya rota yok. Sadece etkinliğe odaklanıldı.")
             }
         } catch (e: Exception) {
-            Log.e("GOOGLE_MAPS", "Camera Error: ${e.message}")
+            Log.e("MapsDebug", "Kamera animasyon hatası: ${e.message}")
         }
     }
 
@@ -77,7 +103,7 @@ fun EventLocationMapCard(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
                     properties = MapProperties(
-                        isMyLocationEnabled = userLocation != null,
+                        isMyLocationEnabled = isValidEskisehirCoordinate(userLocation?.latitude, userLocation?.longitude),
                         mapType = MapType.NORMAL,
                         isTrafficEnabled = true
                     ),
@@ -85,12 +111,15 @@ fun EventLocationMapCard(
                         zoomControlsEnabled = false,
                         myLocationButtonEnabled = true,
                         compassEnabled = true
-                    )
+                    ),
+                    onMapLoaded = {
+                        Log.d("MapsDebug", "Harita başarıyla yüklendi: $title")
+                    }
                 ) {
                     Marker(
-                        state = rememberMarkerState(position = eventLocation),
-                        title = title,
-                        snippet = locationName
+                        state = rememberMarkerState(position = eventLatLng),
+                        title = locationName.ifBlank { title },
+                        snippet = address
                     )
                     
                     if (!encodedPolyline.isNullOrEmpty()) {
@@ -98,10 +127,26 @@ fun EventLocationMapCard(
                         Polyline(
                             points = points,
                             color = MaterialTheme.colorScheme.primary,
-                            width = 15f,
+                            width = 12f,
                             jointType = com.google.android.gms.maps.model.JointType.ROUND,
                             startCap = RoundCap(),
                             endCap = RoundCap()
+                        )
+                    }
+                }
+
+                // Geçersiz koordinat uyarısı
+                if (!isValidEskisehirCoordinate(latitude, longitude)) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp),
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            "Etkinlik konumu bulunamadı, Eskişehir merkezi gösteriliyor.",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall
                         )
                     }
                 }
@@ -130,14 +175,14 @@ fun EventLocationMapCard(
                     
                     IconButton(
                         onClick = {
-                            val uri = Uri.parse("google.navigation:q=$latitude,$longitude")
+                            val uri = Uri.parse("google.navigation:q=${eventLatLng.latitude},${eventLatLng.longitude}")
                             val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                                 setPackage("com.google.android.apps.maps")
                             }
                             try {
                                 context.startActivity(intent)
                             } catch (e: Exception) {
-                                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude"))
+                                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${eventLatLng.latitude},${eventLatLng.longitude}"))
                                 context.startActivity(webIntent)
                             }
                         },
@@ -145,7 +190,7 @@ fun EventLocationMapCard(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
                         )
                     ) {
-                        Icon(Icons.Default.Directions, "Git")
+                        Icon(Icons.Default.Directions, "Yol Tarifi")
                     }
                 }
 

@@ -53,7 +53,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `favorites` (`eventId` INTEGER NOT NULL, PRIMARY KEY(`eventId`))");
@@ -61,9 +61,9 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("CREATE TABLE IF NOT EXISTS `comments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, `userEmail` TEXT NOT NULL, `userName` TEXT NOT NULL, `content` TEXT NOT NULL, `timestamp` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `user_event_status` (`eventId` INTEGER NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`eventId`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `favorite_places` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `location` TEXT NOT NULL, `category` TEXT)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `roadmap_stops` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, `title` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `locationName` TEXT NOT NULL, `address` TEXT NOT NULL, `stopOrder` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `roadmap_stops` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `eventId` INTEGER NOT NULL, `title` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `locationName` TEXT NOT NULL, `address` TEXT NOT NULL, `date` TEXT NOT NULL, `stopOrder` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '22973037924413dae39c44863d34854c')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c4f81e67dec0512a557eae29ff4b932c')");
       }
 
       @Override
@@ -184,7 +184,7 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoFavoritePlaces + "\n"
                   + " Found:\n" + _existingFavoritePlaces);
         }
-        final HashMap<String, TableInfo.Column> _columnsRoadmapStops = new HashMap<String, TableInfo.Column>(8);
+        final HashMap<String, TableInfo.Column> _columnsRoadmapStops = new HashMap<String, TableInfo.Column>(9);
         _columnsRoadmapStops.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("eventId", new TableInfo.Column("eventId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -192,6 +192,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         _columnsRoadmapStops.put("longitude", new TableInfo.Column("longitude", "REAL", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("locationName", new TableInfo.Column("locationName", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("address", new TableInfo.Column("address", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsRoadmapStops.put("date", new TableInfo.Column("date", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsRoadmapStops.put("stopOrder", new TableInfo.Column("stopOrder", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysRoadmapStops = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesRoadmapStops = new HashSet<TableInfo.Index>(0);
@@ -204,7 +205,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "22973037924413dae39c44863d34854c", "15e94aeb6b064a1ba821fafbb1f0bf53");
+    }, "c4f81e67dec0512a557eae29ff4b932c", "6dbae4febcd3fb207ff641c4f919e2d9");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
