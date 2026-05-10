@@ -1,6 +1,8 @@
 package com.eskisehir.eventapp.ui.screens.detail
 
 import android.Manifest
+import android.content.Intent
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -8,12 +10,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +58,7 @@ import com.google.android.gms.maps.model.LatLng
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun EventDetailScreen(
     eventId: Long,
@@ -71,7 +77,53 @@ fun EventDetailScreen(
     val context = LocalContext.current
 
     var isInRoadmap by remember { mutableStateOf(false) }
-    
+    var showLocationAlert by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    // Refresh trigger
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) {
+            kotlinx.coroutines.delay(1500)
+            isRefreshing = false
+        }
+    }
+
+    // Pull-to-refresh state
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            // Recheck permission and fetch location
+            mapsViewModel.checkLocationPermission()
+            mapsViewModel.getUserLocation()
+            isRefreshing = true
+        }
+    )
+
+    // Location Alert Dialog
+    if (showLocationAlert) {
+        AlertDialog(
+            onDismissRequest = { showLocationAlert = false },
+            title = { Text("Konum Gerekli") },
+            text = { Text("Doğru rota hesaplaması için cihazınızda konum hizmetlerini açmalısınız.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLocationAlert = false
+                        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Ayarlar'a Git")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLocationAlert = false }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
+
     // Check if event is in roadmap
     LaunchedEffect(eventId, roadmapUiState.stops) {
         isInRoadmap = roadmapUiState.stops.any { it.eventId == eventId }
@@ -111,7 +163,9 @@ fun EventDetailScreen(
         val userLoc = mapsUiState.userLocation
         val evt = event
         if (evt != null) {
-            if (mapsUiState.driveRoute is RouteUiState.Idle) {
+            val driveSuccess = mapsUiState.driveRoute as? RouteUiState.Success
+            // Recalculate if route is idle OR if it was calculated with fallback location
+            if (mapsUiState.driveRoute is RouteUiState.Idle || driveSuccess?.isFallback == true) {
                 mapsViewModel.calculateAllRoutes(
                     origin = userLoc,
                     destination = LatLng(evt.latitude, evt.longitude)
@@ -207,7 +261,8 @@ fun EventDetailScreen(
             val categoryColor = EventImageUtils.getCategoryColor(currentEvent.category)
             val formattedDate = DateTimeUtils.formatEventDate(currentEvent.date)
 
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize().pullRefresh(pullRefreshState)) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     // Header Image
                     Box(
@@ -388,6 +443,47 @@ fun EventDetailScreen(
                             val routeDistance = if (currentRoute is RouteUiState.Success) currentRoute.distanceMeters else null
                             val encodedPolyline = if (currentRoute is RouteUiState.Success) currentRoute.encodedPolyline else null
 
+                            // Location Request Banner - Show if permission denied OR location unavailable
+                            val shouldShowLocationRequest = !mapsUiState.locationPermissionGranted ||
+                                    (mapsUiState.locationPermissionGranted && mapsUiState.userLocation == null && !mapsUiState.isLoadingLocation)
+
+                            if (shouldShowLocationRequest) {
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text("Konum gerekli", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                            Text("Doğru rota için konum açın", style = MaterialTheme.typography.bodySmall)
+                                        }
+                                        Button(
+                                            onClick = {
+                                                if (!mapsUiState.locationPermissionGranted) {
+                                                    // Request permission
+                                                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                                } else {
+                                                    // Permission granted but location disabled - show alert
+                                                    showLocationAlert = true
+                                                }
+                                            },
+                                            modifier = Modifier.height(40.dp),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("İzin Ver", fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
                             EventLocationMapCard(
                                 title = currentEvent.name,
                                 latitude = currentEvent.latitude,
@@ -520,6 +616,16 @@ fun EventDetailScreen(
                         Spacer(modifier = Modifier.height(32.dp))
                     }
                 }
+            }
+
+                // Pull-to-Refresh Indicator
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentSize(Alignment.TopCenter)
+                )
             }
         }
     }
